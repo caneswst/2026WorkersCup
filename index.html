@@ -1,9 +1,11 @@
+以下是您所需的完整 HTML 程式碼，它將戰術板上的每個位置圖示改為可拖曳移動，同時保留了原有的陣型切換、球員指派與戰術說明功能。
+```html
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>傲翔2026工人盃戰術板</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>傲翔2026工人盃戰術板 - 可拖曳版</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap');
 
@@ -11,6 +13,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            user-select: none; /* 避免拖曳時選中文字 */
         }
         body {
             display: flex;
@@ -63,6 +66,7 @@
             border-radius: 8px;
             box-shadow: 0 0 8px rgba(70, 130, 180, 0.2);
             background-color: #2e8b57;
+            overflow: hidden; /* 確保圖示不會超出邊界 */
         }
         #pitch-error {
             display: none;
@@ -73,6 +77,9 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            border-radius: 8px;
+            z-index: 20;
         }
         .player {
             position: absolute;
@@ -83,14 +90,22 @@
             color: #fff;
             text-align: center;
             line-height: clamp(37.5px, 5.25vw, 60px);
-            cursor: pointer;
+            cursor: grab;
             font-size: clamp(12px, 2.25vw, 21px);
-            transition: transform 0.3s, box-shadow 0.3s;
-            transform: translate(-50%, -50%);
+            transition: box-shadow 0.2s, transform 0.1s;
+            transform: translate(-50%, -50%); /* 中心對齊 */
+            will-change: left, top;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        .player:hover {
-            transform: translate(-50%, -50%) scale(1.1);
-            box-shadow: 0 0 8px rgba(70, 130, 180, 0.6);
+        .player:active {
+            cursor: grabbing;
+        }
+        .player.dragging {
+            opacity: 0.85;
+            cursor: grabbing;
+            z-index: 100;
+            transition: none;
         }
         #left-panel, #subs-container, #right-panel {
             flex: 1 1 18%;
@@ -240,7 +255,7 @@
         // 定義球員名單
         const players = ['禮', '新', 'Mike', 'Dan', '東', '軍c', 'Xander', 'Alex', '光', 'Frankie', '⁠Ivan', 'Vasco', '曹', 'Gary'];
 
-        // 定義陣型
+        // 定義陣型 (保留原始佈局百分比)
         const formations = {
             '321': {
                 positions: ['gk', 'lcb', 'cb', 'rcb', 'lm', 'rm', 'st'],
@@ -254,62 +269,13 @@
                     'st': { left: '50%', top: '15%' }
                 },
                 details: {
-                    'gk': { 
-                        name: '門將 (GK)', 
-                        tactics: '七人場的防守核心，負責守門並快速發動反擊，積極參與進攻組織。', 
-                        tech: '撲救 90, 開球 88, 反應 95, 位置感 88', 
-                        off: '快速長傳至前場，支援邊路快速反擊。', 
-                        def: '守住球門線，果斷出擊攔截單刀或高空球。', 
-                        example: 'Manuel Neuer - 出擊防守和傳球能力強的現代門將。' 
-                    },
-                    'lcb': { 
-                        name: '左中後衛 (LCB)', 
-                        tactics: '防守左側，協助中後衛穩固防線，適時前插參與進攻。', 
-                        tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', 
-                        off: '前插至中場分球，支援左中場快速推進。', 
-                        def: '封堵左路突破，清空禁區威脅，快速回防。', 
-                        example: 'Giorgio Chiellini - 防守硬朗且頭球出色。' 
-                    },
-                    'cb': { 
-                        name: '中後衛 (CB)', 
-                        tactics: '防守核心，負責統籌後防並清空禁區，適時長傳發動進攻。', 
-                        tech: '頭球 92, 搶斷 95, 傳球 85, 力量 90', 
-                        off: '長傳至前場，支援邊路快速反擊。', 
-                        def: '盯防對方前鋒，清空高空球，保持防線穩定。', 
-                        example: 'Virgil van Dijk - 防守全面且領導力強。' 
-                    },
-                    'rcb': { 
-                        name: '右中後衛 (RCB)', 
-                        tactics: '防守右側，與中後衛協作穩固防線，適時前插參與進攻。', 
-                        tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', 
-                        off: '前插至中場分球，支援右中場快速推進。', 
-                        def: '封堵右路突破，清空禁區威脅，快速回防。', 
-                        example: 'Sergio Ramos - 防守兇悍且經驗豐富。' 
-                    },
-                    'lm': { 
-                        name: '左中場 (LM)', 
-                        tactics: '負責左路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', 
-                        tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', 
-                        off: '快速前插至對方禁區邊緣，傳中或內切射門。', 
-                        def: '高位壓迫對方右後衛，快速回防協助左中後衛。', 
-                        example: 'Son Heung-min - 速度快且技術全面。' 
-                    },
-                    'rm': { 
-                        name: '右中場 (RM)', 
-                        tactics: '負責右路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', 
-                        tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', 
-                        off: '快速前插至對方禁區邊緣，傳中或內切射門。', 
-                        def: '高位壓迫對方左後衛，快速回防協助右中後衛。', 
-                        example: 'Bukayo Saka - 速度快且技術出色。' 
-                    },
-                    'st': { 
-                        name: '前鋒 (ST)', 
-                        tactics: '進攻終結者，積極壓迫對方後衛，尋找空位得分機會。', 
-                        tech: '射門 92, 速度 90, 位置感 92, 搶點 90', 
-                        off: '位於禁區前沿，接應邊路傳球或直接射門。', 
-                        def: '高位壓迫對方中後衛，爭搶第一落點。', 
-                        example: 'Harry Kane - 射門效率高且全面。' 
-                    }
+                    'gk': { name: '門將 (GK)', tactics: '七人場的防守核心，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門線，果斷出擊攔截單刀或高空球。', example: 'Manuel Neuer - 出擊防守和傳球能力強的現代門將。' },
+                    'lcb': { name: '左中後衛 (LCB)', tactics: '防守左側，協助中後衛穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援左中場快速推進。', def: '封堵左路突破，清空禁區威脅，快速回防。', example: 'Giorgio Chiellini - 防守硬朗且頭球出色。' },
+                    'cb': { name: '中後衛 (CB)', tactics: '防守核心，負責統籌後防並清空禁區，適時長傳發動進攻。', tech: '頭球 92, 搶斷 95, 傳球 85, 力量 90', off: '長傳至前場，支援邊路快速反擊。', def: '盯防對方前鋒，清空高空球，保持防線穩定。', example: 'Virgil van Dijk - 防守全面且領導力強。' },
+                    'rcb': { name: '右中後衛 (RCB)', tactics: '防守右側，與中後衛協作穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援右中場快速推進。', def: '封堵右路突破，清空禁區威脅，快速回防。', example: 'Sergio Ramos - 防守兇悍且經驗豐富。' },
+                    'lm': { name: '左中場 (LM)', tactics: '負責左路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方右後衛，快速回防協助左中後衛。', example: 'Son Heung-min - 速度快且技術全面。' },
+                    'rm': { name: '右中場 (RM)', tactics: '負責右路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方左後衛，快速回防協助右中後衛。', example: 'Bukayo Saka - 速度快且技術出色。' },
+                    'st': { name: '前鋒 (ST)', tactics: '進攻終結者，積極壓迫對方後衛，尋找空位得分機會。', tech: '射門 92, 速度 90, 位置感 92, 搶點 90', off: '位於禁區前沿，接應邊路傳球或直接射門。', def: '高位壓迫對方中後衛，爭搶第一落點。', example: 'Harry Kane - 射門效率高且全面。' }
                 }
             },
             '312': {
@@ -324,62 +290,13 @@
                     'rst': { left: '60%', top: '15%' }
                 },
                 details: {
-                    'gk': { 
-                        name: '門將 (GK)', 
-                        tactics: '七人場的防守支柱，負責守門並快速發動反擊，積極參與進攻組織。', 
-                        tech: '撲救 90, 開球 88, 反應 95, 位置感 88', 
-                        off: '快速長傳至前場，支援邊路快速反擊。', 
-                        def: '守住球門，快速出擊攔截單刀球。', 
-                        example: 'Manuel Neuer - 出擊型門將典範。' 
-                    },
-                    'lcb': { 
-                        name: '左中後衛 (LCB)', 
-                        tactics: '防守左側，協助中後衛形成緊密防線，適時前插參與進攻。', 
-                        tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', 
-                        off: '前插至中場分球，支援左前鋒快速推進。', 
-                        def: '封堵左路進攻，清空禁區，快速回防。', 
-                        example: 'Giorgio Chiellini - 防守硬朗。' 
-                    },
-                    'cb': { 
-                        name: '中後衛 (CB)', 
-                        tactics: '防守核心，負責清空禁區並指揮後防，適時長傳發動進攻。', 
-                        tech: '頭球 92, 搶斷 95, 傳球 85, 力量 90', 
-                        off: '長傳至前場，支援邊路快速反擊。', 
-                        def: '盯防前鋒，清空高空球，保持防線穩定。', 
-                        example: 'Virgil van Dijk - 全面中後衛。' 
-                    },
-                    'rcb': { 
-                        name: '右中後衛 (RCB)', 
-                        tactics: '防守右側，與中後衛協作穩固防線，適時前插參與進攻。', 
-                        tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', 
-                        off: '前插至中場分球，支援右前鋒快速推進。', 
-                        def: '封堵右路進攻，清空禁區，快速回防。', 
-                        example: 'Sergio Ramos - 防守兇悍。' 
-                    },
-                    'cm': { 
-                        name: '中場 (CM)', 
-                        tactics: '進攻與防守的樞紐，負責中場控制並積極前插支援進攻。', 
-                        tech: '傳球 88, 搶斷 85, 視野 90, 速度 88', 
-                        off: '前插至對方禁區邊緣，分球至雙前鋒或直接射門。', 
-                        def: '高位壓迫對方中場，快速回防保護後衛。', 
-                        example: 'Toni Kroos - 傳球精準且穩健。' 
-                    },
-                    'lst': { 
-                        name: '左前鋒 (LST)', 
-                        tactics: '負責左路進攻終結，快速前插並壓迫對方防線，與右前鋒配合。', 
-                        tech: '射門 90, 速度 92, 盤帶 90, 位置感 90', 
-                        off: '快速前插至對方禁區，內切射門或傳中給右前鋒。', 
-                        def: '高位壓迫對方右後衛，爭搶第二落點。', 
-                        example: 'Son Heung-min - 速度快且射門精準。' 
-                    },
-                    'rst': { 
-                        name: '右前鋒 (RST)', 
-                        tactics: '負責右路進攻終結，快速前插並壓迫對方防線，與左前鋒配合。', 
-                        tech: '射門 90, 速度 92, 盤帶 90, 位置感 90', 
-                        off: '快速前插至對方禁區，內切射門或傳中給左前鋒。', 
-                        def: '高位壓迫對方左後衛，爭搶第二落點。', 
-                        example: 'Kylian Mbappé - 速度驚人且全面。' 
-                    }
+                    'gk': { name: '門將 (GK)', tactics: '七人場的防守支柱，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門，快速出擊攔截單刀球。', example: 'Manuel Neuer - 出擊型門將典範。' },
+                    'lcb': { name: '左中後衛 (LCB)', tactics: '防守左側，協助中後衛形成緊密防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援左前鋒快速推進。', def: '封堵左路進攻，清空禁區，快速回防。', example: 'Giorgio Chiellini - 防守硬朗。' },
+                    'cb': { name: '中後衛 (CB)', tactics: '防守核心，負責清空禁區並指揮後防，適時長傳發動進攻。', tech: '頭球 92, 搶斷 95, 傳球 85, 力量 90', off: '長傳至前場，支援邊路快速反擊。', def: '盯防前鋒，清空高空球，保持防線穩定。', example: 'Virgil van Dijk - 全面中後衛。' },
+                    'rcb': { name: '右中後衛 (RCB)', tactics: '防守右側，與中後衛協作穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援右前鋒快速推進。', def: '封堵右路進攻，清空禁區，快速回防。', example: 'Sergio Ramos - 防守兇悍。' },
+                    'cm': { name: '中場 (CM)', tactics: '進攻與防守的樞紐，負責中場控制並積極前插支援進攻。', tech: '傳球 88, 搶斷 85, 視野 90, 速度 88', off: '前插至對方禁區邊緣，分球至雙前鋒或直接射門。', def: '高位壓迫對方中場，快速回防保護後衛。', example: 'Toni Kroos - 傳球精準且穩健。' },
+                    'lst': { name: '左前鋒 (LST)', tactics: '負責左路進攻終結，快速前插並壓迫對方防線，與右前鋒配合。', tech: '射門 90, 速度 92, 盤帶 90, 位置感 90', off: '快速前插至對方禁區，內切射門或傳中給右前鋒。', def: '高位壓迫對方右後衛，爭搶第二落點。', example: 'Son Heung-min - 速度快且射門精準。' },
+                    'rst': { name: '右前鋒 (RST)', tactics: '負責右路進攻終結，快速前插並壓迫對方防線，與左前鋒配合。', tech: '射門 90, 速度 92, 盤帶 90, 位置感 90', off: '快速前插至對方禁區，內切射門或傳中給左前鋒。', def: '高位壓迫對方左後衛，爭搶第二落點。', example: 'Kylian Mbappé - 速度驚人且全面。' }
                 }
             },
             '231': {
@@ -394,62 +311,13 @@
                     'st': { left: '50%', top: '15%' }
                 },
                 details: {
-                    'gk': { 
-                        name: '門將 (GK)', 
-                        tactics: '七人場的防守最後屏障，負責守門並快速發動反擊，積極參與進攻組織。', 
-                        tech: '撲救 90, 開球 88, 反應 95, 位置感 88', 
-                        off: '快速長傳至前場，支援邊路快速反擊。', 
-                        def: '守住球門線，攔截單刀球。', 
-                        example: 'Manuel Neuer - 出擊型門將。' 
-                    },
-                    'lcb': { 
-                        name: '左後衛 (LCB)', 
-                        tactics: '防守左側，協助右後衛穩固防線，適時前插參與進攻。', 
-                        tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', 
-                        off: '前插至中場分球，支援左中場快速推進。', 
-                        def: '封堵左路進攻，退守補位，快速回防。', 
-                        example: 'Andrew Robertson - 防守穩健。' 
-                    },
-                    'rcb': { 
-                        name: '右後衛 (RCB)', 
-                        tactics: '防守右側，與左後衛協作穩固防線，適時前插參與進攻。', 
-                        tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', 
-                        off: '前插至中場分球，支援右中場快速推進。', 
-                        def: '封堵右路進攻，退守補位，快速回防。', 
-                        example: 'Kyle Walker - 速度快且穩固。' 
-                    },
-                    'lm': { 
-                        name: '左中場 (LM)', 
-                        tactics: '負責左路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', 
-                        tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', 
-                        off: '快速前插至對方禁區邊緣，傳中或內切射門。', 
-                        def: '高位壓迫對方右後衛，快速回防協助左後衛。', 
-                        example: 'Son Heung-min - 技術全面。' 
-                    },
-                    'cm': { 
-                        name: '中場 (CM)', 
-                        tactics: '中場核心，負責組織進攻並積極前插，支援邊路和前鋒。', 
-                        tech: '傳球 88, 搶斷 85, 視野 90, 速度 88', 
-                        off: '前插至對方禁區邊緣，分球至邊路或直接射門。', 
-                        def: '高位壓迫對方中場，快速回防保護後衛。', 
-                        example: 'Luka Modrić - 技術全面且積極。' 
-                    },
-                    'rm': { 
-                        name: '右中場 (RM)', 
-                        tactics: '負責右路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', 
-                        tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', 
-                        off: '快速前插至對方禁區邊緣，傳中或內切射門。', 
-                        def: '高位壓迫對方左後衛，快速回防協助右後衛。', 
-                        example: 'Bukayo Saka - 速度快且出色。' 
-                    },
-                    'st': { 
-                        name: '前鋒 (ST)', 
-                        tactics: '進攻終結者，積極壓迫對方後衛，尋找空位得分機會。', 
-                        tech: '射門 92, 速度 90, 位置感 92, 搶點 90', 
-                        off: '位於禁區前沿，接應邊路傳球或直接射門。', 
-                        def: '高位壓迫對方中後衛，爭搶第一落點。', 
-                        example: 'Harry Kane - 射門效率高。' 
-                    }
+                    'gk': { name: '門將 (GK)', tactics: '七人場的防守最後屏障，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門線，攔截單刀球。', example: 'Manuel Neuer - 出擊型門將。' },
+                    'lcb': { name: '左後衛 (LCB)', tactics: '防守左側，協助右後衛穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援左中場快速推進。', def: '封堵左路進攻，退守補位，快速回防。', example: 'Andrew Robertson - 防守穩健。' },
+                    'rcb': { name: '右後衛 (RCB)', tactics: '防守右側，與左後衛協作穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援右中場快速推進。', def: '封堵右路進攻，退守補位，快速回防。', example: 'Kyle Walker - 速度快且穩固。' },
+                    'lm': { name: '左中場 (LM)', tactics: '負責左路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方右後衛，快速回防協助左後衛。', example: 'Son Heung-min - 技術全面。' },
+                    'cm': { name: '中場 (CM)', tactics: '中場核心，負責組織進攻並積極前插，支援邊路和前鋒。', tech: '傳球 88, 搶斷 85, 視野 90, 速度 88', off: '前插至對方禁區邊緣，分球至邊路或直接射門。', def: '高位壓迫對方中場，快速回防保護後衛。', example: 'Luka Modrić - 技術全面且積極。' },
+                    'rm': { name: '右中場 (RM)', tactics: '負責右路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方左後衛，快速回防協助右後衛。', example: 'Bukayo Saka - 速度快且出色。' },
+                    'st': { name: '前鋒 (ST)', tactics: '進攻終結者，積極壓迫對方後衛，尋找空位得分機會。', tech: '射門 92, 速度 90, 位置感 92, 搶點 90', off: '位於禁區前沿，接應邊路傳球或直接射門。', def: '高位壓迫對方中後衛，爭搶第一落點。', example: 'Harry Kane - 射門效率高。' }
                 }
             }
         };
@@ -461,68 +329,132 @@
         };
         let currentFormation = '321';
 
-        // 檢查足球場圖片是否加載成功
-        function checkPitchImage() {
-            const img = new Image();
-            img.src = 'https://raw.githubusercontent.com/caneswst/Falcon352/refs/heads/main/football_pitch.jpg';
-            img.onload = () => {
-                console.log('Football pitch image loaded successfully.');
-                document.getElementById('pitch-error').style.display = 'none';
-                document.getElementById('pitch-container').style.backgroundImage = "url('https://raw.githubusercontent.com/caneswst/Falcon352/refs/heads/main/football_pitch.jpg')";
-            };
-            img.onerror = () => {
-                console.error('Failed to load football pitch image.');
-                document.getElementById('pitch-error').style.display = 'block';
-                document.getElementById('pitch-container').style.backgroundImage = 'none';
-            };
-        }
+        // ---------- 可拖曳功能 (支援滑鼠與觸控，並區分點擊/拖曳) ----------
+        function makeDraggable(element, positionKey) {
+            let startX = 0, startY = 0;
+            let startLeft = 0, startTop = 0;
+            let isDragging = false;
+            let dragStarted = false;      // 是否已移動超過閾值
+            let hasMoved = false;          // 標記是否有實際位移 (用於區分點擊)
+            let clickThreshold = 5;        // 移動超過5px視為拖曳
 
-        // 初始化陣型選擇
-        function initFormationSelect() {
-            console.log('Initializing formation select...');
-            const formationSelect = document.getElementById('formation-select');
-            if (!formationSelect) {
-                console.error("Formation select element not found!");
-                return;
+            // 取得父容器 (球場)
+            const container = document.getElementById('pitch-container');
+            if (!container) return;
+
+            // 事件開始：滑鼠/手指按下
+            function onPointerDown(e) {
+                // 阻止預設行為，避免拖曳時選中或拖動圖片
+                e.preventDefault();
+                e.stopPropagation();
+
+                // 取得初始座標 (滑鼠或觸控)
+                const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+                const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
+                startX = clientX;
+                startY = clientY;
+
+                // 取得目前元素相對於父容器的 left/top 像素值
+                const rect = element.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                startLeft = rect.left - containerRect.left;
+                startTop = rect.top - containerRect.top;
+
+                // 確保元素使用像素定位 (避免百分比干擾)
+                element.style.left = startLeft + 'px';
+                element.style.top = startTop + 'px';
+
+                isDragging = true;
+                dragStarted = false;
+                hasMoved = false;
+
+                // 添加全局事件
+                window.addEventListener('mousemove', onPointerMove);
+                window.addEventListener('mouseup', onPointerUp);
+                window.addEventListener('touchmove', onPointerMove, { passive: false });
+                window.addEventListener('touchend', onPointerUp);
+                window.addEventListener('touchcancel', onPointerUp);
+
+                // 添加拖曳樣式
+                element.classList.add('dragging');
             }
-            formationSelect.value = '321';
-            formationSelect.onchange = () => {
-                console.log('Formation changed to:', formationSelect.value);
-                currentFormation = formationSelect.value;
-                updateFormation();
-                updatePitchAndSubs();
-            };
-            loadSavedSelections();
-            updateFormation();
-            checkPitchImage();
+
+            function onPointerMove(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+
+                const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
+                const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+
+                // 判斷是否超過點擊閾值
+                if (!dragStarted && (Math.abs(dx) > clickThreshold || Math.abs(dy) > clickThreshold)) {
+                    dragStarted = true;
+                    hasMoved = true;
+                }
+
+                if (dragStarted) {
+                    let newLeft = startLeft + dx;
+                    let newTop = startTop + dy;
+                    // 可選：限制邊界 (避免拖出球場外)
+                    const containerRect = container.getBoundingClientRect();
+                    const elemRect = element.getBoundingClientRect();
+                    const maxLeft = containerRect.width - elemRect.width;
+                    const maxTop = containerRect.height - elemRect.height;
+                    newLeft = Math.min(Math.max(0, newLeft), maxLeft);
+                    newTop = Math.min(Math.max(0, newTop), maxTop);
+                    element.style.left = newLeft + 'px';
+                    element.style.top = newTop + 'px';
+                }
+            }
+
+            function onPointerUp(e) {
+                if (!isDragging) return;
+                isDragging = false;
+                element.classList.remove('dragging');
+
+                // 清理全域事件
+                window.removeEventListener('mousemove', onPointerMove);
+                window.removeEventListener('mouseup', onPointerUp);
+                window.removeEventListener('touchmove', onPointerMove);
+                window.removeEventListener('touchend', onPointerUp);
+                window.removeEventListener('touchcancel', onPointerUp);
+
+                // 若沒有移動 (或移動很小) 則視為點擊，顯示戰術要求
+                if (!hasMoved) {
+                    showPositionDetails(positionKey);
+                }
+                // 重置標記
+                hasMoved = false;
+                dragStarted = false;
+            }
+
+            // 註冊事件 (同時支援滑鼠與觸控)
+            element.addEventListener('mousedown', onPointerDown);
+            element.addEventListener('touchstart', onPointerDown, { passive: false });
         }
 
-        // 更新陣型相關內容
+        // 將百分比位置轉換為實際像素位置 (用於初始化時固定像素，以便拖曳平滑)
+        function convertToPixelPosition(element, percentLeft, percentTop, container) {
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            const leftPx = (parseFloat(percentLeft) / 100) * containerWidth;
+            const topPx = (parseFloat(percentTop) / 100) * containerHeight;
+            element.style.left = leftPx + 'px';
+            element.style.top = topPx + 'px';
+        }
+
+        // 更新陣型相關內容 (保留原有邏輯，增加拖曳綁定)
         function updateFormation() {
-            console.log('Updating formation for:', currentFormation);
             const formation = formations[currentFormation];
             const positionsContainer = document.getElementById('positions-container');
             const pitchContainer = document.getElementById('pitch-container');
             const positionDetails = document.getElementById('position-details');
 
-            if (!formation) {
-                console.error('Formation not found for:', currentFormation);
-                return;
-            }
-            if (!positionsContainer || !pitchContainer || !positionDetails) {
-                console.error("One or more required elements not found!");
-                return;
-            }
-
-            // 檢查 players 陣列
-            if (!players || players.length === 0) {
-                console.error('Players array is empty or undefined!');
-                positionsContainer.innerHTML = '<p style="color: red;">錯誤：球員名單未加載！</p>';
-                return;
-            }
+            if (!formation) return;
 
             // 更新左側選單
-            console.log('Generating positions for:', formation.positions);
             positionsContainer.innerHTML = '';
             formation.positions.forEach(pos => {
                 const label = document.createElement('label');
@@ -534,27 +466,41 @@
                 positionsContainer.appendChild(select);
             });
 
-            // 更新戰術板
-            console.log('Generating pitch layout for:', formation.positions);
+            // 重建戰術板 (保留背景錯誤提示)
             pitchContainer.innerHTML = '';
-            pitchContainer.innerHTML += `
-                <div id="pitch-error" style="display: none;">
-                    無法加載足球場圖片，請檢查網路或圖片路徑。
-                </div>
-            `;
+            const errorDiv = document.createElement('div');
+            errorDiv.id = 'pitch-error';
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '無法加載足球場圖片，請檢查網路或圖片路徑。';
+            pitchContainer.appendChild(errorDiv);
+
+            // 創建所有位置圖示
             formation.positions.forEach(pos => {
                 const playerDiv = document.createElement('div');
                 playerDiv.className = 'player';
                 playerDiv.id = `${pos}-player`;
-                playerDiv.style.left = formation.layout[pos].left;
-                playerDiv.style.top = formation.layout[pos].top;
-                playerDiv.textContent = pos.toUpperCase();
-                playerDiv.onclick = () => showPositionDetails(pos);
+                // 先使用百分比設置位置 (稍後轉為像素)
+                const layout = formation.layout[pos];
+                playerDiv.style.left = layout.left;
+                playerDiv.style.top = layout.top;
+                playerDiv.textContent = pos.toUpperCase(); // 預設顯示位置代碼
                 pitchContainer.appendChild(playerDiv);
             });
 
-            // 更新右側詳情
-            console.log('Generating position details for:', formation.positions);
+            // 等待 DOM 更新後，將百分比轉為像素 (確保拖曳時使用像素)
+            setTimeout(() => {
+                formation.positions.forEach(pos => {
+                    const playerDiv = document.getElementById(`${pos}-player`);
+                    if (playerDiv && pitchContainer) {
+                        const layout = formation.layout[pos];
+                        convertToPixelPosition(playerDiv, layout.left, layout.top, pitchContainer);
+                        // 綁定可拖曳功能，並傳入位置 key
+                        makeDraggable(playerDiv, pos);
+                    }
+                });
+            }, 10);
+
+            // 更新右側詳情面板
             positionDetails.innerHTML = '';
             formation.positions.forEach(pos => {
                 const info = formation.details[pos];
@@ -574,28 +520,28 @@
             formation.positions.forEach(pos => {
                 const select = document.getElementById(pos);
                 if (select) {
-                    select.onchange = updatePitchAndSubs;
+                    select.onchange = () => updatePitchAndSubs();
                     if (selectedPlayersByFormation[currentFormation][pos]) {
                         select.value = selectedPlayersByFormation[currentFormation][pos];
                     }
                 }
             });
 
-            // 默認顯示第一個位置的戰術要求
+            // 顯示第一個位置的戰術要求
             if (formation.positions.length > 0) {
                 showPositionDetails(formation.positions[0]);
             }
             updatePitchAndSubs();
         }
 
-        // 更新戰術板和後備名單
+        // 更新戰術板和後備名單 (顯示球員名字)
         function updatePitchAndSubs() {
-            console.log('Updating pitch and subs...');
             const formation = formations[currentFormation];
             const selected = new Set();
+
             formation.positions.forEach(pos => {
                 const select = document.getElementById(pos);
-                const playerDiv = document.getElementById(pos + '-player');
+                const playerDiv = document.getElementById(`${pos}-player`);
                 if (select && playerDiv) {
                     const selectedPlayer = select.value;
                     playerDiv.textContent = selectedPlayer || pos.toUpperCase();
@@ -608,48 +554,37 @@
             const subsList = document.getElementById('subs-list');
             if (subsList) {
                 const subs = players.filter(p => !selected.has(p));
-                console.log('Substitutes:', subs);
                 subsList.innerHTML = subs.map(p => `<p>${p}</p>`).join('');
             }
 
-            // 保存選擇到本地存儲
+            // 儲存至 localStorage
             localStorage.setItem('selectedPlayersByFormation', JSON.stringify(selectedPlayersByFormation));
             localStorage.setItem('currentFormation', currentFormation);
         }
 
-        // 載入上次保存的選擇
-        function loadSavedSelections() {
-            console.log('Loading saved selections...');
-            const savedFormation = localStorage.getItem('currentFormation');
-            const savedPlayers = localStorage.getItem('selectedPlayersByFormation');
-            if (savedFormation) {
-                currentFormation = savedFormation;
-                const formationSelect = document.getElementById('formation-select');
-                if (formationSelect) {
-                    formationSelect.value = savedFormation;
-                }
-            }
-            if (savedPlayers) {
-                selectedPlayersByFormation = JSON.parse(savedPlayers);
-            }
-            Object.keys(formations).forEach(formation => {
-                if (!selectedPlayersByFormation[formation]) {
-                    selectedPlayersByFormation[formation] = {};
-                }
-            });
-        }
-
-        // 顯示位置詳情
         function showPositionDetails(pos) {
-            console.log('Showing details for position:', pos);
             document.querySelectorAll('.position-info').forEach(info => info.style.display = 'none');
             const infoDiv = document.getElementById(pos + '-info');
             if (infoDiv) infoDiv.style.display = 'block';
         }
 
-        // 匯出陣容功能
+        function loadSavedSelections() {
+            const savedFormation = localStorage.getItem('currentFormation');
+            const savedPlayers = localStorage.getItem('selectedPlayersByFormation');
+            if (savedFormation && formations[savedFormation]) {
+                currentFormation = savedFormation;
+                const formationSelect = document.getElementById('formation-select');
+                if (formationSelect) formationSelect.value = savedFormation;
+            }
+            if (savedPlayers) {
+                selectedPlayersByFormation = JSON.parse(savedPlayers);
+            }
+            Object.keys(formations).forEach(formation => {
+                if (!selectedPlayersByFormation[formation]) selectedPlayersByFormation[formation] = {};
+            });
+        }
+
         function exportFormation() {
-            console.log('Exporting formation...');
             const data = {
                 currentFormation: currentFormation,
                 selectedPlayersByFormation: selectedPlayersByFormation
@@ -666,12 +601,9 @@
             URL.revokeObjectURL(url);
         }
 
-        // 匯入陣容功能
         function importFormation(event) {
-            console.log('Importing formation...');
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
@@ -679,24 +611,15 @@
                     if (data.currentFormation && data.selectedPlayersByFormation) {
                         currentFormation = data.currentFormation;
                         selectedPlayersByFormation = data.selectedPlayersByFormation;
-
-                        // 確保所有陣型都有對應的選擇數據
-                        Object.keys(formations).forEach(formation => {
-                            if (!selectedPlayersByFormation[formation]) {
-                                selectedPlayersByFormation[formation] = {};
-                            }
+                        Object.keys(formations).forEach(f => {
+                            if (!selectedPlayersByFormation[f]) selectedPlayersByFormation[f] = {};
                         });
-
-                        // 更新 UI
                         const formationSelect = document.getElementById('formation-select');
                         formationSelect.value = currentFormation;
                         updateFormation();
                         updatePitchAndSubs();
-
-                        // 保存到本地存儲
                         localStorage.setItem('currentFormation', currentFormation);
                         localStorage.setItem('selectedPlayersByFormation', JSON.stringify(selectedPlayersByFormation));
-
                         alert('陣容已成功匯入！');
                     } else {
                         alert('匯入的檔案格式不正確！');
@@ -708,13 +631,26 @@
             reader.readAsText(file);
         }
 
-        // 確保頁面加載完成後初始化
+        function initFormationSelect() {
+            const formationSelect = document.getElementById('formation-select');
+            formationSelect.onchange = () => {
+                currentFormation = formationSelect.value;
+                updateFormation();
+            };
+            loadSavedSelections();
+            updateFormation();
+            // 檢查圖片
+            const img = new Image();
+            img.src = 'https://raw.githubusercontent.com/caneswst/Falcon352/refs/heads/main/football_pitch.jpg';
+            img.onerror = () => {
+                document.getElementById('pitch-error').style.display = 'block';
+            };
+        }
+
         window.onload = () => {
-            console.log('Window loaded, initializing...');
             initFormationSelect();
         };
     </script>
 </body>
 </html>
-
-
+```
