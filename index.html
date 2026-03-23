@@ -5,12 +5,303 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>傲翔2026工人盃戰術板 (雲端同步)</title>
     <style>
-        /* 此處樣式與先前相同，因篇幅省略，實際使用時請從上方複製完整樣式 */
-        /* 為保持完整性，請使用您原有的樣式，此處暫不重複 */
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #e8ecef, #f5f7fa);
+            color: #333;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        #header {
+            text-align: center;
+            padding: 2vh 0;
+            background: linear-gradient(90deg, #4682b4, #2e8b57);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+        #header h1 {
+            font-family: 'Bebas Neue', cursive;
+            font-size: clamp(24px, 5vw, 36px);
+            margin: 0;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        .layout-switch {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 10px 0;
+        }
+        .layout-btn {
+            background: #4682b4;
+            border: none;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        .layout-btn.active {
+            background: #2e8b57;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        .layout-btn:hover {
+            background: #2e8b57;
+            transform: scale(1.02);
+        }
+        .container {
+            display: flex;
+            flex-wrap: nowrap;
+            padding: 1vw;
+            width: 100%;
+            margin: 0;
+            gap: 1vw;
+            flex-grow: 1;
+            align-items: stretch;
+        }
+        #pitch-container {
+            flex: 0 0 25%;
+            position: relative;
+            background: url('https://raw.githubusercontent.com/caneswst/Falcon352/refs/heads/main/football_pitch.jpg') no-repeat center;
+            background-size: cover;
+            min-height: 200px;
+            aspect-ratio: 3 / 5;
+            border: 2px solid #4682b4;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(70, 130, 180, 0.2);
+            background-color: #2e8b57;
+            overflow: hidden;
+        }
+        #pitch-error {
+            display: none;
+            color: red;
+            text-align: center;
+            padding: 20px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            border-radius: 8px;
+            z-index: 20;
+        }
+        .player {
+            position: absolute;
+            width: clamp(37.5px, 5.25vw, 60px);
+            height: clamp(37.5px, 5.25vw, 60px);
+            background: #4682b4;
+            border-radius: 50%;
+            color: #fff;
+            text-align: center;
+            line-height: clamp(37.5px, 5.25vw, 60px);
+            cursor: grab;
+            font-size: clamp(12px, 2.25vw, 21px);
+            transition: box-shadow 0.2s, transform 0.1s;
+            transform: translate(-50%, -50%);
+            will-change: left, top;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .player:active {
+            cursor: grabbing;
+        }
+        .player.dragging {
+            opacity: 0.85;
+            cursor: grabbing;
+            z-index: 100;
+            transition: none;
+        }
+        #left-panel, #subs-container, #right-panel {
+            flex: 1 1 18%;
+            padding: 1vw;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            min-width: 200px;
+        }
+        select {
+            width: 100%;
+            padding: clamp(4px, 1vw, 6px);
+            margin-bottom: clamp(6px, 1vw, 8px);
+            border-radius: 5px;
+            background: #fff;
+            color: #333;
+            border: 1px solid #4682b4;
+            font-size: clamp(10px, 1.5vw, 12px);
+        }
+        h2, h3 {
+            color: #4682b4;
+            font-family: 'Bebas Neue', cursive;
+            margin: clamp(4px, 1vw, 5px) 0;
+            font-size: clamp(16px, 2vw, 20px);
+        }
+        .position-info {
+            display: none;
+            line-height: 1.5;
+            background: rgba(70, 130, 180, 0.1);
+            padding: clamp(6px, 1vw, 8px);
+            border-radius: 5px;
+            margin-bottom: clamp(6px, 1vw, 8px);
+        }
+        .position-info p {
+            margin: clamp(3px, 0.5vw, 4px) 0;
+            font-size: clamp(10px, 1.5vw, 12px);
+        }
+        .position-info strong {
+            color: #2e8b57;
+        }
+        #formation-select {
+            width: 100%;
+            padding: clamp(6px, 1vw, 8px);
+            margin-bottom: clamp(8px, 1.5vw, 10px);
+            font-size: clamp(12px, 1.8vw, 14px);
+            background: #4682b4;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        #formation-select:hover {
+            background: #2e8b57;
+        }
+        .sync-status {
+            font-size: 12px;
+            margin-top: 10px;
+            padding: 4px;
+            background: #eee;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        /* 手機佈局強制模式 */
+        body.force-mobile .container {
+            flex-direction: column;
+            padding: 2vw;
+        }
+        body.force-mobile #pitch-container {
+            width: 100%;
+            min-height: 50vh;
+            max-height: 400px;
+            flex: none;
+        }
+        body.force-mobile #left-panel,
+        body.force-mobile #subs-container,
+        body.force-mobile #right-panel {
+            width: 100%;
+            min-height: 30vh;
+            margin-top: 2vw;
+            flex: none;
+        }
+        body.force-mobile #left-panel { order: 2; }
+        body.force-mobile #subs-container { order: 3; }
+        body.force-mobile #right-panel { order: 1; }
+        body.force-mobile .player {
+            width: 9vw;
+            height: 9vw;
+            line-height: 9vw;
+            font-size: 3vw;
+        }
+
+        /* 電腦佈局強制模式 */
+        body.force-desktop .container {
+            flex-direction: row;
+            flex-wrap: nowrap;
+        }
+        body.force-desktop #pitch-container {
+            flex: 0 0 25%;
+            width: auto;
+            max-height: none;
+        }
+        body.force-desktop #left-panel,
+        body.force-desktop #subs-container,
+        body.force-desktop #right-panel {
+            flex: 1 1 18%;
+            order: unset;
+            margin-top: 0;
+        }
+        body.force-desktop .player {
+            width: clamp(37.5px, 5.25vw, 60px);
+            height: clamp(37.5px, 5.25vw, 60px);
+            line-height: clamp(37.5px, 5.25vw, 60px);
+            font-size: clamp(12px, 2.25vw, 21px);
+        }
+
+        /* 原本的響應式媒體查詢（僅在無強制模式時生效） */
+        @media (max-width: 900px) {
+            body:not(.force-desktop):not(.force-mobile) .container { flex-wrap: wrap; }
+            body:not(.force-desktop):not(.force-mobile) #pitch-container { flex: 0 0 70%; }
+            body:not(.force-desktop):not(.force-mobile) #left-panel,
+            body:not(.force-desktop):not(.force-mobile) #subs-container,
+            body:not(.force-desktop):not(.force-mobile) #right-panel { flex: 1 1 15%; }
+        }
+        @media (max-width: 600px) {
+            body:not(.force-desktop):not(.force-mobile) .container { flex-direction: column; padding: 2vw; }
+            body:not(.force-desktop):not(.force-mobile) #pitch-container { width: 100%; min-height: 50vh; max-height: 400px; }
+            body:not(.force-desktop):not(.force-mobile) #left-panel,
+            body:not(.force-desktop):not(.force-mobile) #subs-container,
+            body:not(.force-desktop):not(.force-mobile) #right-panel { width: 100%; min-height: 30vh; margin-top: 2vw; }
+            body:not(.force-desktop):not(.force-mobile) #left-panel { order: 2; }
+            body:not(.force-desktop):not(.force-mobile) #subs-container { order: 3; }
+            body:not(.force-desktop):not(.force-mobile) #right-panel { order: 1; }
+            body:not(.force-desktop):not(.force-mobile) .player { width: 9vw; height: 9vw; line-height: 9vw; font-size: 3vw; }
+        }
     </style>
 </head>
 <body>
-    <!-- HTML 結構與之前完全相同，此處略，實際使用時請從上方複製完整結構 -->
+    <div id="header">
+        <h1>傲翔2026工人盃戰術板 (雲端同步)</h1>
+        <div class="layout-switch">
+            <button id="btn-desktop" class="layout-btn">💻 電腦版</button>
+            <button id="btn-mobile" class="layout-btn">📱 手機版</button>
+            <button id="btn-auto" class="layout-btn active">🔄 自動</button>
+        </div>
+    </div>
+    <div class="container">
+        <div id="left-panel">
+            <h2>陣容選擇</h2>
+            <label>選擇陣型:</label>
+            <select id="formation-select">
+                <option value="321">3-2-1</option>
+                <option value="312">3-1-2</option>
+                <option value="231">2-3-1</option>
+            </select>
+            <div id="positions-container"></div>
+            <div class="sync-status" id="sync-status">🔄 同步中...</div>
+        </div>
+        <div id="subs-container">
+            <h3>後備球員</h3>
+            <div id="subs-list"></div>
+        </div>
+        <div id="pitch-container">
+            <div id="pitch-error" style="display: none;">無法加載足球場圖片，請檢查網路或圖片路徑。</div>
+        </div>
+        <div id="right-panel">
+            <h2>請點選位置顯示戰術要求</h2>
+            <div id="position-details"></div>
+        </div>
+    </div>
+
     <script>
         // ====================  JSONBin 設定  ====================
         const BIN_ID = "69c0ae30c3097a1dd54ddd0b";
@@ -20,14 +311,57 @@
         // 球員名單
         const players = ['禮', '新', 'Mike', 'Dan', '東', '軍c', 'Xander', 'Alex', '光', 'Frankie', 'Ivan', 'Vasco', '曹', 'Gary'];
 
-        // ---------- 完整陣型定義（與先前相同，此處略，實際使用時請從上方複製完整 formations）----------
+        // ---------- 完整陣型定義 ----------
         const formations = {
-            // 請確保此處的 formations 內容與先前完全一致，此處僅佔位符
-            '321': { positions: [], layout: {}, details: {} },
-            '312': { positions: [], layout: {}, details: {} },
-            '231': { positions: [], layout: {}, details: {} }
+            '321': {
+                positions: ['gk', 'lcb', 'cb', 'rcb', 'lm', 'rm', 'st'],
+                layout: {
+                    'gk': { left: '50%', top: '90%' }, 'lcb': { left: '10%', top: '50%' }, 'cb': { left: '50%', top: '65%' },
+                    'rcb': { left: '90%', top: '50%' }, 'lm': { left: '35%', top: '35%' }, 'rm': { left: '65%', top: '35%' }, 'st': { left: '50%', top: '15%' }
+                },
+                details: {
+                    'gk': { name: '門將 (GK)', tactics: '七人場的防守核心，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門線，果斷出擊攔截單刀或高空球。', example: 'Manuel Neuer - 出擊防守和傳球能力強的現代門將。' },
+                    'lcb': { name: '左中後衛 (LCB)', tactics: '防守左側，協助中後衛穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援左中場快速推進。', def: '封堵左路突破，清空禁區威脅，快速回防。', example: 'Giorgio Chiellini - 防守硬朗且頭球出色。' },
+                    'cb': { name: '中後衛 (CB)', tactics: '防守核心，負責統籌後防並清空禁區，適時長傳發動進攻。', tech: '頭球 92, 搶斷 95, 傳球 85, 力量 90', off: '長傳至前場，支援邊路快速反擊。', def: '盯防對方前鋒，清空高空球，保持防線穩定。', example: 'Virgil van Dijk - 防守全面且領導力強。' },
+                    'rcb': { name: '右中後衛 (RCB)', tactics: '防守右側，與中後衛協作穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援右中場快速推進。', def: '封堵右路突破，清空禁區威脅，快速回防。', example: 'Sergio Ramos - 防守兇悍且經驗豐富。' },
+                    'lm': { name: '左中場 (LM)', tactics: '負責左路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方右後衛，快速回防協助左中後衛。', example: 'Son Heung-min - 速度快且技術全面。' },
+                    'rm': { name: '右中場 (RM)', tactics: '負責右路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方左後衛，快速回防協助右中後衛。', example: 'Bukayo Saka - 速度快且技術出色。' },
+                    'st': { name: '前鋒 (ST)', tactics: '進攻終結者，積極壓迫對方後衛，尋找空位得分機會。', tech: '射門 92, 速度 90, 位置感 92, 搶點 90', off: '位於禁區前沿，接應邊路傳球或直接射門。', def: '高位壓迫對方中後衛，爭搶第一落點。', example: 'Harry Kane - 射門效率高且全面。' }
+                }
+            },
+            '312': {
+                positions: ['gk', 'lcb', 'cb', 'rcb', 'cm', 'lst', 'rst'],
+                layout: {
+                    'gk': { left: '50%', top: '90%' }, 'lcb': { left: '30%', top: '70%' }, 'cb': { left: '50%', top: '70%' },
+                    'rcb': { left: '70%', top: '70%' }, 'cm': { left: '50%', top: '50%' }, 'lst': { left: '40%', top: '15%' }, 'rst': { left: '60%', top: '15%' }
+                },
+                details: {
+                    'gk': { name: '門將 (GK)', tactics: '七人場的防守支柱，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門，快速出擊攔截單刀球。', example: 'Manuel Neuer - 出擊型門將典範。' },
+                    'lcb': { name: '左中後衛 (LCB)', tactics: '防守左側，協助中後衛形成緊密防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援左前鋒快速推進。', def: '封堵左路進攻，清空禁區，快速回防。', example: 'Giorgio Chiellini - 防守硬朗。' },
+                    'cb': { name: '中後衛 (CB)', tactics: '防守核心，負責清空禁區並指揮後防，適時長傳發動進攻。', tech: '頭球 92, 搶斷 95, 傳球 85, 力量 90', off: '長傳至前場，支援邊路快速反擊。', def: '盯防前鋒，清空高空球，保持防線穩定。', example: 'Virgil van Dijk - 全面中後衛。' },
+                    'rcb': { name: '右中後衛 (RCB)', tactics: '防守右側，與中後衛協作穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援右前鋒快速推進。', def: '封堵右路進攻，清空禁區，快速回防。', example: 'Sergio Ramos - 防守兇悍。' },
+                    'cm': { name: '中場 (CM)', tactics: '進攻與防守的樞紐，負責中場控制並積極前插支援進攻。', tech: '傳球 88, 搶斷 85, 視野 90, 速度 88', off: '前插至對方禁區邊緣，分球至雙前鋒或直接射門。', def: '高位壓迫對方中場，快速回防保護後衛。', example: 'Toni Kroos - 傳球精準且穩健。' },
+                    'lst': { name: '左前鋒 (LST)', tactics: '負責左路進攻終結，快速前插並壓迫對方防線，與右前鋒配合。', tech: '射門 90, 速度 92, 盤帶 90, 位置感 90', off: '快速前插至對方禁區，內切射門或傳中給右前鋒。', def: '高位壓迫對方右後衛，爭搶第二落點。', example: 'Son Heung-min - 速度快且射門精準。' },
+                    'rst': { name: '右前鋒 (RST)', tactics: '負責右路進攻終結，快速前插並壓迫對方防線，與左前鋒配合。', tech: '射門 90, 速度 92, 盤帶 90, 位置感 90', off: '快速前插至對方禁區，內切射門或傳中給左前鋒。', def: '高位壓迫對方左後衛，爭搶第二落點。', example: 'Kylian Mbappé - 速度驚人且全面。' }
+                }
+            },
+            '231': {
+                positions: ['gk', 'lcb', 'rcb', 'lm', 'cm', 'rm', 'st'],
+                layout: {
+                    'gk': { left: '50%', top: '90%' }, 'lcb': { left: '35%', top: '70%' }, 'rcb': { left: '65%', top: '70%' },
+                    'lm': { left: '25%', top: '35%' }, 'cm': { left: '50%', top: '40%' }, 'rm': { left: '75%', top: '35%' }, 'st': { left: '50%', top: '15%' }
+                },
+                details: {
+                    'gk': { name: '門將 (GK)', tactics: '七人場的防守最後屏障，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門線，攔截單刀球。', example: 'Manuel Neuer - 出擊型門將。' },
+                    'lcb': { name: '左後衛 (LCB)', tactics: '防守左側，協助右後衛穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援左中場快速推進。', def: '封堵左路進攻，退守補位，快速回防。', example: 'Andrew Robertson - 防守穩健。' },
+                    'rcb': { name: '右後衛 (RCB)', tactics: '防守右側，與左後衛協作穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援右中場快速推進。', def: '封堵右路進攻，退守補位，快速回防。', example: 'Kyle Walker - 速度快且穩固。' },
+                    'lm': { name: '左中場 (LM)', tactics: '負責左路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方右後衛，快速回防協助左後衛。', example: 'Son Heung-min - 技術全面。' },
+                    'cm': { name: '中場 (CM)', tactics: '中場核心，負責組織進攻並積極前插，支援邊路和前鋒。', tech: '傳球 88, 搶斷 85, 視野 90, 速度 88', off: '前插至對方禁區邊緣，分球至邊路或直接射門。', def: '高位壓迫對方中場，快速回防保護後衛。', example: 'Luka Modrić - 技術全面且積極。' },
+                    'rm': { name: '右中場 (RM)', tactics: '負責右路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方左後衛，快速回防協助右後衛。', example: 'Bukayo Saka - 速度快且出色。' },
+                    'st': { name: '前鋒 (ST)', tactics: '進攻終結者，積極壓迫對方後衛，尋找空位得分機會。', tech: '射門 92, 速度 90, 位置感 92, 搶點 90', off: '位於禁區前沿，接應邊路傳球或直接射門。', def: '高位壓迫對方中後衛，爭搶第一落點。', example: 'Harry Kane - 射門效率高。' }
+                }
+            }
         };
-        // 請將您原有的完整 formations 定義複製到此處，否則戰術說明會遺失
 
         // 全域變數
         let currentFormation = '321';
@@ -35,7 +369,6 @@
         let positionsPercent = {};
         let isRemoteUpdate = false;
         let cloudDataCache = null;
-        let resizeObserver = null;  // 用於視窗大小變化時重新定位
 
         // DOM 元素
         const formationSelect = document.getElementById('formation-select');
@@ -131,7 +464,7 @@
             rebuildUI();
         }
 
-        // ---------- UI 建構與拖曳 ----------
+        // ---------- 拖曳功能 ----------
         function makeDraggable(element, posKey) {
             let startX = 0, startY = 0;
             let startLeft = 0, startTop = 0;
@@ -217,7 +550,7 @@
             element.addEventListener('touchstart', onPointerDown, { passive: false });
         }
 
-        // 重新計算所有圖示的位置（不重建 DOM，僅更新 left/top）
+        // ---------- 重新定位所有圖示（不重建 DOM） ----------
         function repositionAllPlayers() {
             const formation = formations[currentFormation];
             if (!formation) return;
@@ -231,14 +564,12 @@
                     percentX = positionsPercent[pos].percentX;
                     percentY = positionsPercent[pos].percentY;
                 } else {
-                    // 使用預設百分比
                     const layout = formation.layout[pos];
                     percentX = parseFloat(layout.left);
                     percentY = parseFloat(layout.top);
                     positionsPercent[pos] = { percentX, percentY };
                 }
 
-                // 確保容器有有效尺寸
                 if (pitchContainer.clientWidth > 0 && pitchContainer.clientHeight > 0) {
                     const { left, top } = percentToPixels(percentX, percentY, pitchContainer);
                     playerDiv.style.left = left + 'px';
@@ -247,6 +578,7 @@
             });
         }
 
+        // ---------- 重建完整 UI ----------
         function rebuildUI() {
             const formation = formations[currentFormation];
             if (!formation) return;
@@ -270,10 +602,8 @@
                 positionsContainer.appendChild(select);
             });
 
-            // 重新建立球場圖示（先清空）
+            // 清空球場，重建圖示
             pitchContainer.innerHTML = '<div id="pitch-error" style="display: none;">無法加載足球場圖片</div>';
-
-            // 先創建所有圖示元素，但暫不設置位置（避免容器尺寸未定）
             formation.positions.forEach(pos => {
                 const playerDiv = document.createElement('div');
                 playerDiv.className = 'player';
@@ -282,9 +612,8 @@
                 pitchContainer.appendChild(playerDiv);
             });
 
-            // 等待 DOM 渲染完成後再計算位置（確保容器已有正確尺寸）
+            // 等待 DOM 渲染完成後再計算位置
             requestAnimationFrame(() => {
-                // 如果容器尺寸為0，再延遲一次
                 if (pitchContainer.clientWidth === 0 || pitchContainer.clientHeight === 0) {
                     requestAnimationFrame(() => repositionAllPlayers());
                 } else {
@@ -292,7 +621,7 @@
                 }
             });
 
-            // 為所有圖示綁定拖曳（需要等元素存在後）
+            // 綁定拖曳（需等待元素存在）
             setTimeout(() => {
                 formation.positions.forEach(pos => {
                     const playerDiv = document.getElementById(`${pos}-player`);
@@ -342,7 +671,7 @@
             if (target) target.style.display = 'block';
         }
 
-        // ---------- 手機/電腦版切換功能 ----------
+        // ---------- 手機/電腦版切換 ----------
         let currentLayout = 'auto';
         function setLayoutMode(mode) {
             currentLayout = mode;
@@ -353,14 +682,12 @@
             document.getElementById('btn-auto').classList.toggle('active', mode === 'auto');
             document.getElementById('btn-mobile').classList.toggle('active', mode === 'mobile');
             document.getElementById('btn-desktop').classList.toggle('active', mode === 'desktop');
-            // 重新定位圖示（佈局改變後容器尺寸會變）
             requestAnimationFrame(() => repositionAllPlayers());
         }
 
-        // 監聽視窗大小改變，重新定位圖示
+        // ---------- 視窗大小變化監聽 ----------
         function initResizeListener() {
             window.addEventListener('resize', () => {
-                // 使用 requestAnimationFrame 避免頻繁計算
                 requestAnimationFrame(() => repositionAllPlayers());
             });
         }
