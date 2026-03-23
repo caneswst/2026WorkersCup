@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>傲翔2026工人盃戰術板 - 雲端同步版</title>
+    <title>傲翔2026工人盃戰術板 - 雲端同步版 (可切換手機/電腦佈局)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap');
 
@@ -43,6 +43,34 @@
             50% { transform: scale(1.03); }
             100% { transform: scale(1); }
         }
+        /* 佈局切換按鈕區 */
+        .layout-switch {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 10px 0;
+        }
+        .layout-btn {
+            background: #4682b4;
+            border: none;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        .layout-btn.active {
+            background: #2e8b57;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        .layout-btn:hover {
+            background: #2e8b57;
+            transform: scale(1.02);
+        }
+
+        /* 預設響應式佈局 (電腦優先) */
         .container {
             display: flex;
             flex-wrap: nowrap;
@@ -168,25 +196,89 @@
             border-radius: 4px;
             text-align: center;
         }
+
+        /* ----- 手機佈局強制模式 (覆蓋響應式) ----- */
+        body.force-mobile .container {
+            flex-direction: column;
+            padding: 2vw;
+        }
+        body.force-mobile #pitch-container {
+            width: 100%;
+            min-height: 50vh;
+            max-height: 400px;
+            flex: none;
+        }
+        body.force-mobile #left-panel,
+        body.force-mobile #subs-container,
+        body.force-mobile #right-panel {
+            width: 100%;
+            min-height: 30vh;
+            margin-top: 2vw;
+            flex: none;
+        }
+        body.force-mobile #left-panel { order: 2; }
+        body.force-mobile #subs-container { order: 3; }
+        body.force-mobile #right-panel { order: 1; }
+        body.force-mobile .player {
+            width: 9vw;
+            height: 9vw;
+            line-height: 9vw;
+            font-size: 3vw;
+        }
+
+        /* ----- 電腦佈局強制模式 (覆蓋響應式，強制橫排) ----- */
+        body.force-desktop .container {
+            flex-direction: row;
+            flex-wrap: nowrap;
+        }
+        body.force-desktop #pitch-container {
+            flex: 0 0 25%;
+            width: auto;
+            max-height: none;
+        }
+        body.force-desktop #left-panel,
+        body.force-desktop #subs-container,
+        body.force-desktop #right-panel {
+            flex: 1 1 18%;
+            order: unset;
+            margin-top: 0;
+        }
+        body.force-desktop .player {
+            width: clamp(37.5px, 5.25vw, 60px);
+            height: clamp(37.5px, 5.25vw, 60px);
+            line-height: clamp(37.5px, 5.25vw, 60px);
+            font-size: clamp(12px, 2.25vw, 21px);
+        }
+
+        /* 原本的媒體查詢保留，但會被強制模式覆蓋 */
         @media (max-width: 900px) {
-            .container { flex-wrap: wrap; }
-            #pitch-container { flex: 0 0 70%; }
-            #left-panel, #subs-container, #right-panel { flex: 1 1 15%; }
+            body:not(.force-desktop):not(.force-mobile) .container { flex-wrap: wrap; }
+            body:not(.force-desktop):not(.force-mobile) #pitch-container { flex: 0 0 70%; }
+            body:not(.force-desktop):not(.force-mobile) #left-panel,
+            body:not(.force-desktop):not(.force-mobile) #subs-container,
+            body:not(.force-desktop):not(.force-mobile) #right-panel { flex: 1 1 15%; }
         }
         @media (max-width: 600px) {
-            .container { flex-direction: column; padding: 2vw; }
-            #pitch-container { width: 100%; min-height: 50vh; max-height: 400px; }
-            #left-panel, #subs-container, #right-panel { width: 100%; min-height: 30vh; margin-top: 2vw; }
-            #left-panel { order: 2; }
-            #subs-container { order: 3; }
-            #right-panel { order: 1; }
-            .player { width: 9vw; height: 9vw; line-height: 9vw; font-size: 3vw; }
+            body:not(.force-desktop):not(.force-mobile) .container { flex-direction: column; padding: 2vw; }
+            body:not(.force-desktop):not(.force-mobile) #pitch-container { width: 100%; min-height: 50vh; max-height: 400px; }
+            body:not(.force-desktop):not(.force-mobile) #left-panel,
+            body:not(.force-desktop):not(.force-mobile) #subs-container,
+            body:not(.force-desktop):not(.force-mobile) #right-panel { width: 100%; min-height: 30vh; margin-top: 2vw; }
+            body:not(.force-desktop):not(.force-mobile) #left-panel { order: 2; }
+            body:not(.force-desktop):not(.force-mobile) #subs-container { order: 3; }
+            body:not(.force-desktop):not(.force-mobile) #right-panel { order: 1; }
+            body:not(.force-desktop):not(.force-mobile) .player { width: 9vw; height: 9vw; line-height: 9vw; font-size: 3vw; }
         }
     </style>
 </head>
 <body>
     <div id="header">
         <h1>傲翔2025工人盃戰術板 (雲端同步)</h1>
+        <div class="layout-switch">
+            <button id="btn-desktop" class="layout-btn">💻 電腦版</button>
+            <button id="btn-mobile" class="layout-btn">📱 手機版</button>
+            <button id="btn-auto" class="layout-btn active">🔄 自動</button>
+        </div>
     </div>
     <div class="container">
         <div id="left-panel">
@@ -323,7 +415,6 @@
             } catch (err) {
                 console.error('載入失敗', err);
                 syncStatusSpan.textContent = '⚠️ 無法連線雲端，使用本地模式';
-                // 使用預設值
                 selectedPlayers = {};
                 positionsCoords = {};
                 rebuildUI();
@@ -334,7 +425,6 @@
             if (isRemoteUpdate) return;
             if (!cloudDataCache) return;
 
-            // 更新緩存中的當前陣型資料
             cloudDataCache.currentFormation = currentFormation;
             cloudDataCache.formations[currentFormation].players = selectedPlayers;
             cloudDataCache.formations[currentFormation].coords = positionsCoords;
@@ -370,7 +460,6 @@
 
         function updateFormationToCloud(formationKey) {
             currentFormation = formationKey;
-            // 切換陣型時，載入該陣型的資料（如果緩存中有）
             if (cloudDataCache && cloudDataCache.formations[formationKey]) {
                 selectedPlayers = { ...cloudDataCache.formations[formationKey].players };
                 positionsCoords = { ...cloudDataCache.formations[formationKey].coords };
@@ -551,7 +640,95 @@
             if (target) target.style.display = 'block';
         }
 
-        // 事件綁定
+        // ---------- 手機/電腦版切換功能 ----------
+        let currentLayout = 'auto'; // 'auto', 'mobile', 'desktop'
+
+        function setLayoutMode(mode) {
+            currentLayout = mode;
+            document.body.classList.remove('force-mobile', 'force-desktop');
+            if (mode === 'mobile') {
+                document.body.classList.add('force-mobile');
+            } else if (mode === 'desktop') {
+                document.body.classList.add('force-desktop');
+            }
+            // 儲存使用者偏好
+            localStorage.setItem('layoutMode', mode);
+
+            // 更新按鈕樣式
+            document.getElementById('btn-auto').classList.toggle('active', mode === 'auto');
+            document.getElementById('btn-mobile').classList.toggle('active', mode === 'mobile');
+            document.getElementById('btn-desktop').classList.toggle('active', mode === 'desktop');
+
+            // 佈局改變後，需要重新調整所有球員位置（保留相對比例）
+            repositionPlayersAfterLayoutChange();
+        }
+
+        function repositionPlayersAfterLayoutChange() {
+            const formation = formations[currentFormation];
+            if (!formation) return;
+
+            // 1. 獲取當前所有球員的像素座標，並計算相對於容器寬高的百分比
+            const tempPercent = {};
+            formation.positions.forEach(pos => {
+                const playerDiv = document.getElementById(`${pos}-player`);
+                if (playerDiv) {
+                    const leftPx = parseFloat(playerDiv.style.left);
+                    const topPx = parseFloat(playerDiv.style.top);
+                    if (!isNaN(leftPx) && !isNaN(topPx)) {
+                        const containerRect = pitchContainer.getBoundingClientRect();
+                        if (containerRect.width > 0 && containerRect.height > 0) {
+                            const percentX = (leftPx / containerRect.width) * 100;
+                            const percentY = (topPx / containerRect.height) * 100;
+                            tempPercent[pos] = { percentX, percentY };
+                        }
+                    }
+                }
+            });
+
+            // 2. 強制重新計算佈局 (強制重排)
+            // 讓瀏覽器重新計算容器尺寸
+            pitchContainer.offsetHeight; // 強制重排
+
+            // 3. 根據百分比重新計算新像素座標並更新
+            const newCoords = {};
+            const containerRect = pitchContainer.getBoundingClientRect();
+            formation.positions.forEach(pos => {
+                if (tempPercent[pos]) {
+                    const newLeft = (tempPercent[pos].percentX / 100) * containerRect.width;
+                    const newTop = (tempPercent[pos].percentY / 100) * containerRect.height;
+                    newCoords[pos] = { left: newLeft, top: newTop };
+                } else {
+                    // 如果沒有百分比（例如剛載入），則使用預設百分比
+                    const layout = formation.layout[pos];
+                    const { left, top } = percentToPixels(layout.left, layout.top, pitchContainer);
+                    newCoords[pos] = { left, top };
+                }
+            });
+
+            // 4. 更新 positionsCoords 並重新建構 UI
+            for (let pos in newCoords) {
+                positionsCoords[pos] = newCoords[pos];
+            }
+            // 重新建構 UI 以套用新座標並重新綁定拖曳
+            rebuildUI();
+            // 儲存到雲端
+            saveToCloud();
+        }
+
+        // 事件綁定：切換模式按鈕
+        document.getElementById('btn-auto').addEventListener('click', () => setLayoutMode('auto'));
+        document.getElementById('btn-mobile').addEventListener('click', () => setLayoutMode('mobile'));
+        document.getElementById('btn-desktop').addEventListener('click', () => setLayoutMode('desktop'));
+
+        // 從 localStorage 載入上次選擇的佈局模式
+        const savedLayout = localStorage.getItem('layoutMode');
+        if (savedLayout && ['auto', 'mobile', 'desktop'].includes(savedLayout)) {
+            setLayoutMode(savedLayout);
+        } else {
+            setLayoutMode('auto'); // 預設自動
+        }
+
+        // 事件綁定：陣型切換
         formationSelect.onchange = () => {
             const newForm = formationSelect.value;
             if (newForm === currentFormation) return;
