@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>傲翔2026工人盃戰術板 - 雲端同步版 (可切換手機/電腦佈局)</title>
+    <title>傲翔2026工人盃戰術板</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap');
 
@@ -43,7 +43,6 @@
             50% { transform: scale(1.03); }
             100% { transform: scale(1); }
         }
-        /* 佈局切換按鈕區 */
         .layout-switch {
             display: flex;
             justify-content: center;
@@ -69,8 +68,6 @@
             background: #2e8b57;
             transform: scale(1.02);
         }
-
-        /* 預設響應式佈局 (電腦優先) */
         .container {
             display: flex;
             flex-wrap: nowrap;
@@ -197,7 +194,7 @@
             text-align: center;
         }
 
-        /* ----- 手機佈局強制模式 (覆蓋響應式) ----- */
+        /* 手機佈局強制模式 */
         body.force-mobile .container {
             flex-direction: column;
             padding: 2vw;
@@ -226,7 +223,7 @@
             font-size: 3vw;
         }
 
-        /* ----- 電腦佈局強制模式 (覆蓋響應式，強制橫排) ----- */
+        /* 電腦佈局強制模式 */
         body.force-desktop .container {
             flex-direction: row;
             flex-wrap: nowrap;
@@ -250,7 +247,7 @@
             font-size: clamp(12px, 2.25vw, 21px);
         }
 
-        /* 原本的媒體查詢保留，但會被強制模式覆蓋 */
+        /* 原本的響應式媒體查詢（僅在無強制模式時生效） */
         @media (max-width: 900px) {
             body:not(.force-desktop):not(.force-mobile) .container { flex-wrap: wrap; }
             body:not(.force-desktop):not(.force-mobile) #pitch-container { flex: 0 0 70%; }
@@ -273,7 +270,7 @@
 </head>
 <body>
     <div id="header">
-        <h1>傲翔2025工人盃戰術板 (雲端同步)</h1>
+        <h1>傲翔2026工人盃戰術板 (雲端同步)</h1>
         <div class="layout-switch">
             <button id="btn-desktop" class="layout-btn">💻 電腦版</button>
             <button id="btn-mobile" class="layout-btn">📱 手機版</button>
@@ -306,17 +303,15 @@
     </div>
 
     <script>
-        // ====================  請填入您的 JSONBin 資訊  ====================
-        const BIN_ID = "69c0ae30c3097a1dd54ddd0b";      // 例如 66f0a3e4ad19ca34f8b9c2a3
-        const API_KEY = "$2a$10$hpvWSVZz6NSxFP/yY6srDu8yQJTtPj61BZk1o3VOoSgYh7AWGHri2";    // 例如 $2a$10$xxxxx
-        // ==================================================================
-
+        // ====================  JSONBin 設定  ====================
+        const BIN_ID = "69c0ae30c3097a1dd54ddd0b";
+        const API_KEY = "$2a$10$hpvWSVZz6NSxFP/yY6srDu8yQJTtPj61BZk1o3VOoSgYh7AWGHri2";
         const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
         // 球員名單
         const players = ['禮', '新', 'Mike', 'Dan', '東', '軍c', 'Xander', 'Alex', '光', 'Frankie', 'Ivan', 'Vasco', '曹', 'Gary'];
 
-        // ---------- 完整陣型定義（與您原始程式碼相同）----------
+        // ---------- 完整陣型定義（包含所有戰術說明）----------
         const formations = {
             '321': {
                 positions: ['gk', 'lcb', 'cb', 'rcb', 'lm', 'rm', 'st'],
@@ -370,10 +365,10 @@
 
         // 全域變數
         let currentFormation = '321';
-        let selectedPlayers = {};      // { pos: playerName }
-        let positionsCoords = {};      // { pos: { left, top } }
-        let isRemoteUpdate = false;     // 避免循環更新
-        let cloudDataCache = null;      // 緩存完整雲端資料
+        let selectedPlayers = {};          // { pos: playerName }
+        let positionsPercent = {};          // { pos: { percentX, percentY } }
+        let isRemoteUpdate = false;
+        let cloudDataCache = null;
 
         // DOM 元素
         const formationSelect = document.getElementById('formation-select');
@@ -384,23 +379,26 @@
         const syncStatusSpan = document.getElementById('sync-status');
 
         // ---------- 輔助函數 ----------
-        function percentToPixels(percentLeft, percentTop, container) {
-            const left = (parseFloat(percentLeft) / 100) * container.clientWidth;
-            const top = (parseFloat(percentTop) / 100) * container.clientHeight;
+        function percentToPixels(percentX, percentY, container) {
+            const left = (percentX / 100) * container.clientWidth;
+            const top = (percentY / 100) * container.clientHeight;
             return { left, top };
+        }
+
+        function pixelsToPercent(leftPx, topPx, container) {
+            const percentX = (leftPx / container.clientWidth) * 100;
+            const percentY = (topPx / container.clientHeight) * 100;
+            return { percentX, percentY };
         }
 
         // ---------- 雲端讀寫 ----------
         async function loadFromCloud() {
             syncStatusSpan.textContent = '📡 載入中...';
             try {
-                const response = await fetch(API_URL, {
-                    headers: { 'X-Master-Key': API_KEY }
-                });
+                const response = await fetch(API_URL, { headers: { 'X-Master-Key': API_KEY } });
                 const data = await response.json();
                 cloudDataCache = data.record;
 
-                // 初始化各陣型資料結構
                 for (let f of ['321', '312', '231']) {
                     if (!cloudDataCache.formations[f]) cloudDataCache.formations[f] = { players: {}, coords: {} };
                 }
@@ -408,7 +406,7 @@
                 currentFormation = cloudDataCache.currentFormation || '321';
                 formationSelect.value = currentFormation;
                 selectedPlayers = { ...cloudDataCache.formations[currentFormation].players };
-                positionsCoords = { ...cloudDataCache.formations[currentFormation].coords };
+                positionsPercent = { ...cloudDataCache.formations[currentFormation].coords }; // 百分比座標
 
                 rebuildUI();
                 syncStatusSpan.textContent = '✅ 已同步雲端';
@@ -416,26 +414,21 @@
                 console.error('載入失敗', err);
                 syncStatusSpan.textContent = '⚠️ 無法連線雲端，使用本地模式';
                 selectedPlayers = {};
-                positionsCoords = {};
+                positionsPercent = {};
                 rebuildUI();
             }
         }
 
         async function saveToCloud() {
-            if (isRemoteUpdate) return;
-            if (!cloudDataCache) return;
-
+            if (isRemoteUpdate || !cloudDataCache) return;
             cloudDataCache.currentFormation = currentFormation;
             cloudDataCache.formations[currentFormation].players = selectedPlayers;
-            cloudDataCache.formations[currentFormation].coords = positionsCoords;
+            cloudDataCache.formations[currentFormation].coords = positionsPercent;
 
             try {
                 await fetch(API_URL, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': API_KEY
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
                     body: JSON.stringify(cloudDataCache)
                 });
                 syncStatusSpan.textContent = '✅ 已儲存';
@@ -448,8 +441,8 @@
             }
         }
 
-        function updatePositionToCloud(pos, leftPx, topPx) {
-            positionsCoords[pos] = { left: leftPx, top: topPx };
+        function updatePositionToCloud(pos, percentX, percentY) {
+            positionsPercent[pos] = { percentX, percentY };
             saveToCloud();
         }
 
@@ -462,10 +455,10 @@
             currentFormation = formationKey;
             if (cloudDataCache && cloudDataCache.formations[formationKey]) {
                 selectedPlayers = { ...cloudDataCache.formations[formationKey].players };
-                positionsCoords = { ...cloudDataCache.formations[formationKey].coords };
+                positionsPercent = { ...cloudDataCache.formations[formationKey].coords };
             } else {
                 selectedPlayers = {};
-                positionsCoords = {};
+                positionsPercent = {};
             }
             saveToCloud();
             rebuildUI();
@@ -542,7 +535,9 @@
                     const newLeft = parseFloat(element.style.left);
                     const newTop = parseFloat(element.style.top);
                     if (!isNaN(newLeft) && !isNaN(newTop)) {
-                        updatePositionToCloud(posKey, newLeft, newTop);
+                        const containerRect = pitchContainer.getBoundingClientRect();
+                        const { percentX, percentY } = pixelsToPercent(newLeft, newTop, containerRect);
+                        updatePositionToCloud(posKey, percentX, percentY);
                     }
                 } else {
                     showPositionDetails(posKey);
@@ -578,24 +573,27 @@
                 positionsContainer.appendChild(select);
             });
 
-            // 球場圖示
+            // 球場圖示：使用百分比座標
             pitchContainer.innerHTML = '<div id="pitch-error" style="display: none;">無法加載足球場圖片</div>';
+            const containerRect = pitchContainer.getBoundingClientRect();
             formation.positions.forEach(pos => {
-                let leftPx, topPx;
-                if (positionsCoords[pos] && positionsCoords[pos].left !== undefined) {
-                    leftPx = positionsCoords[pos].left;
-                    topPx = positionsCoords[pos].top;
+                let percentX, percentY;
+                if (positionsPercent[pos] && positionsPercent[pos].percentX !== undefined) {
+                    percentX = positionsPercent[pos].percentX;
+                    percentY = positionsPercent[pos].percentY;
                 } else {
-                    const { left, top } = percentToPixels(formation.layout[pos].left, formation.layout[pos].top, pitchContainer);
-                    leftPx = left;
-                    topPx = top;
-                    positionsCoords[pos] = { left: leftPx, top: topPx };
+                    // 使用陣型預設百分比
+                    const layout = formation.layout[pos];
+                    percentX = parseFloat(layout.left);
+                    percentY = parseFloat(layout.top);
+                    positionsPercent[pos] = { percentX, percentY };
                 }
+                const { left, top } = percentToPixels(percentX, percentY, pitchContainer);
                 const playerDiv = document.createElement('div');
                 playerDiv.className = 'player';
                 playerDiv.id = `${pos}-player`;
-                playerDiv.style.left = leftPx + 'px';
-                playerDiv.style.top = topPx + 'px';
+                playerDiv.style.left = left + 'px';
+                playerDiv.style.top = top + 'px';
                 playerDiv.textContent = selectedPlayers[pos] || pos.toUpperCase();
                 makeDraggable(playerDiv, pos);
                 pitchContainer.appendChild(playerDiv);
@@ -641,99 +639,34 @@
         }
 
         // ---------- 手機/電腦版切換功能 ----------
-        let currentLayout = 'auto'; // 'auto', 'mobile', 'desktop'
-
+        let currentLayout = 'auto';
         function setLayoutMode(mode) {
             currentLayout = mode;
             document.body.classList.remove('force-mobile', 'force-desktop');
-            if (mode === 'mobile') {
-                document.body.classList.add('force-mobile');
-            } else if (mode === 'desktop') {
-                document.body.classList.add('force-desktop');
-            }
-            // 儲存使用者偏好
+            if (mode === 'mobile') document.body.classList.add('force-mobile');
+            else if (mode === 'desktop') document.body.classList.add('force-desktop');
             localStorage.setItem('layoutMode', mode);
-
-            // 更新按鈕樣式
             document.getElementById('btn-auto').classList.toggle('active', mode === 'auto');
             document.getElementById('btn-mobile').classList.toggle('active', mode === 'mobile');
             document.getElementById('btn-desktop').classList.toggle('active', mode === 'desktop');
-
-            // 佈局改變後，需要重新調整所有球員位置（保留相對比例）
-            repositionPlayersAfterLayoutChange();
-        }
-
-        function repositionPlayersAfterLayoutChange() {
-            const formation = formations[currentFormation];
-            if (!formation) return;
-
-            // 1. 獲取當前所有球員的像素座標，並計算相對於容器寬高的百分比
-            const tempPercent = {};
-            formation.positions.forEach(pos => {
-                const playerDiv = document.getElementById(`${pos}-player`);
-                if (playerDiv) {
-                    const leftPx = parseFloat(playerDiv.style.left);
-                    const topPx = parseFloat(playerDiv.style.top);
-                    if (!isNaN(leftPx) && !isNaN(topPx)) {
-                        const containerRect = pitchContainer.getBoundingClientRect();
-                        if (containerRect.width > 0 && containerRect.height > 0) {
-                            const percentX = (leftPx / containerRect.width) * 100;
-                            const percentY = (topPx / containerRect.height) * 100;
-                            tempPercent[pos] = { percentX, percentY };
-                        }
-                    }
-                }
-            });
-
-            // 2. 強制重新計算佈局 (強制重排)
-            // 讓瀏覽器重新計算容器尺寸
-            pitchContainer.offsetHeight; // 強制重排
-
-            // 3. 根據百分比重新計算新像素座標並更新
-            const newCoords = {};
-            const containerRect = pitchContainer.getBoundingClientRect();
-            formation.positions.forEach(pos => {
-                if (tempPercent[pos]) {
-                    const newLeft = (tempPercent[pos].percentX / 100) * containerRect.width;
-                    const newTop = (tempPercent[pos].percentY / 100) * containerRect.height;
-                    newCoords[pos] = { left: newLeft, top: newTop };
-                } else {
-                    // 如果沒有百分比（例如剛載入），則使用預設百分比
-                    const layout = formation.layout[pos];
-                    const { left, top } = percentToPixels(layout.left, layout.top, pitchContainer);
-                    newCoords[pos] = { left, top };
-                }
-            });
-
-            // 4. 更新 positionsCoords 並重新建構 UI
-            for (let pos in newCoords) {
-                positionsCoords[pos] = newCoords[pos];
-            }
-            // 重新建構 UI 以套用新座標並重新綁定拖曳
+            // 重新繪製 UI 以套用新的容器尺寸（百分比轉像素會重新計算）
             rebuildUI();
-            // 儲存到雲端
-            saveToCloud();
         }
 
-        // 事件綁定：切換模式按鈕
-        document.getElementById('btn-auto').addEventListener('click', () => setLayoutMode('auto'));
-        document.getElementById('btn-mobile').addEventListener('click', () => setLayoutMode('mobile'));
-        document.getElementById('btn-desktop').addEventListener('click', () => setLayoutMode('desktop'));
-
-        // 從 localStorage 載入上次選擇的佈局模式
-        const savedLayout = localStorage.getItem('layoutMode');
-        if (savedLayout && ['auto', 'mobile', 'desktop'].includes(savedLayout)) {
-            setLayoutMode(savedLayout);
-        } else {
-            setLayoutMode('auto'); // 預設自動
-        }
-
-        // 事件綁定：陣型切換
+        // 事件綁定
         formationSelect.onchange = () => {
             const newForm = formationSelect.value;
             if (newForm === currentFormation) return;
             updateFormationToCloud(newForm);
         };
+        document.getElementById('btn-auto').addEventListener('click', () => setLayoutMode('auto'));
+        document.getElementById('btn-mobile').addEventListener('click', () => setLayoutMode('mobile'));
+        document.getElementById('btn-desktop').addEventListener('click', () => setLayoutMode('desktop'));
+
+        // 載入上次佈局偏好
+        const savedLayout = localStorage.getItem('layoutMode');
+        if (savedLayout && ['auto', 'mobile', 'desktop'].includes(savedLayout)) setLayoutMode(savedLayout);
+        else setLayoutMode('auto');
 
         // 圖片錯誤處理
         const imgTest = new Image();
