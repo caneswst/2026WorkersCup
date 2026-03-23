@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>傲翔2026工人盃戰術板 (雲端同步)</title>
+    <title>傲翔2026工人盃戰術板 - 穩定同步版</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap');
 
@@ -36,12 +36,6 @@
             color: #fff;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.03); }
-            100% { transform: scale(1); }
         }
         .layout-switch {
             display: flex;
@@ -194,73 +188,29 @@
             text-align: center;
         }
 
-        /* 手機佈局強制模式 */
-        body.force-mobile .container {
-            flex-direction: column;
-            padding: 2vw;
-        }
-        body.force-mobile #pitch-container {
-            width: 100%;
-            min-height: 50vh;
-            max-height: 400px;
-            flex: none;
-        }
-        body.force-mobile #left-panel,
-        body.force-mobile #subs-container,
-        body.force-mobile #right-panel {
-            width: 100%;
-            min-height: 30vh;
-            margin-top: 2vw;
-            flex: none;
-        }
+        /* 手機/電腦強制模式（與之前相同，此處省略完整內容，實際使用時保留完整） */
+        body.force-mobile .container { flex-direction: column; padding: 2vw; }
+        body.force-mobile #pitch-container { width: 100%; min-height: 50vh; max-height: 400px; flex: none; }
+        body.force-mobile #left-panel, body.force-mobile #subs-container, body.force-mobile #right-panel { width: 100%; min-height: 30vh; margin-top: 2vw; flex: none; }
         body.force-mobile #left-panel { order: 2; }
         body.force-mobile #subs-container { order: 3; }
         body.force-mobile #right-panel { order: 1; }
-        body.force-mobile .player {
-            width: 9vw;
-            height: 9vw;
-            line-height: 9vw;
-            font-size: 3vw;
-        }
+        body.force-mobile .player { width: 9vw; height: 9vw; line-height: 9vw; font-size: 3vw; }
 
-        /* 電腦佈局強制模式 */
-        body.force-desktop .container {
-            flex-direction: row;
-            flex-wrap: nowrap;
-        }
-        body.force-desktop #pitch-container {
-            flex: 0 0 25%;
-            width: auto;
-            max-height: none;
-        }
-        body.force-desktop #left-panel,
-        body.force-desktop #subs-container,
-        body.force-desktop #right-panel {
-            flex: 1 1 18%;
-            order: unset;
-            margin-top: 0;
-        }
-        body.force-desktop .player {
-            width: clamp(37.5px, 5.25vw, 60px);
-            height: clamp(37.5px, 5.25vw, 60px);
-            line-height: clamp(37.5px, 5.25vw, 60px);
-            font-size: clamp(12px, 2.25vw, 21px);
-        }
+        body.force-desktop .container { flex-direction: row; flex-wrap: nowrap; }
+        body.force-desktop #pitch-container { flex: 0 0 25%; width: auto; max-height: none; }
+        body.force-desktop #left-panel, body.force-desktop #subs-container, body.force-desktop #right-panel { flex: 1 1 18%; order: unset; margin-top: 0; }
+        body.force-desktop .player { width: clamp(37.5px, 5.25vw, 60px); height: clamp(37.5px, 5.25vw, 60px); line-height: clamp(37.5px, 5.25vw, 60px); font-size: clamp(12px, 2.25vw, 21px); }
 
-        /* 原本的響應式媒體查詢（僅在無強制模式時生效） */
         @media (max-width: 900px) {
             body:not(.force-desktop):not(.force-mobile) .container { flex-wrap: wrap; }
             body:not(.force-desktop):not(.force-mobile) #pitch-container { flex: 0 0 70%; }
-            body:not(.force-desktop):not(.force-mobile) #left-panel,
-            body:not(.force-desktop):not(.force-mobile) #subs-container,
-            body:not(.force-desktop):not(.force-mobile) #right-panel { flex: 1 1 15%; }
+            body:not(.force-desktop):not(.force-mobile) #left-panel, body:not(.force-desktop):not(.force-mobile) #subs-container, body:not(.force-desktop):not(.force-mobile) #right-panel { flex: 1 1 15%; }
         }
         @media (max-width: 600px) {
             body:not(.force-desktop):not(.force-mobile) .container { flex-direction: column; padding: 2vw; }
             body:not(.force-desktop):not(.force-mobile) #pitch-container { width: 100%; min-height: 50vh; max-height: 400px; }
-            body:not(.force-desktop):not(.force-mobile) #left-panel,
-            body:not(.force-desktop):not(.force-mobile) #subs-container,
-            body:not(.force-desktop):not(.force-mobile) #right-panel { width: 100%; min-height: 30vh; margin-top: 2vw; }
+            body:not(.force-desktop):not(.force-mobile) #left-panel, body:not(.force-desktop):not(.force-mobile) #subs-container, body:not(.force-desktop):not(.force-mobile) #right-panel { width: 100%; min-height: 30vh; margin-top: 2vw; }
             body:not(.force-desktop):not(.force-mobile) #left-panel { order: 2; }
             body:not(.force-desktop):not(.force-mobile) #subs-container { order: 3; }
             body:not(.force-desktop):not(.force-mobile) #right-panel { order: 1; }
@@ -270,7 +220,7 @@
 </head>
 <body>
     <div id="header">
-        <h1>傲翔2026工人盃戰術板 (雲端同步)</h1>
+        <h1>傲翔2026工人盃戰術板 (穩定同步版)</h1>
         <div class="layout-switch">
             <button id="btn-desktop" class="layout-btn">💻 電腦版</button>
             <button id="btn-mobile" class="layout-btn">📱 手機版</button>
@@ -294,7 +244,7 @@
             <div id="subs-list"></div>
         </div>
         <div id="pitch-container">
-            <div id="pitch-error" style="display: none;">無法加載足球場圖片，請檢查網路或圖片路徑。</div>
+            <div id="pitch-error" style="display: none;">無法加載足球場圖片</div>
         </div>
         <div id="right-panel">
             <h2>請點選位置顯示戰術要求</h2>
@@ -303,7 +253,7 @@
     </div>
 
     <script>
-        // ====================  JSONBin 設定  ====================
+        // ==================== JSONBin 設定 ====================
         const BIN_ID = "69c0ae30c3097a1dd54ddd0b";
         const API_KEY = "$2a$10$hpvWSVZz6NSxFP/yY6srDu8yQJTtPj61BZk1o3VOoSgYh7AWGHri2";
         const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
@@ -311,13 +261,13 @@
         // 球員名單
         const players = ['禮', '新', 'Mike', 'Dan', '東', '軍c', 'Xander', 'Alex', '光', 'Frankie', 'Ivan', 'Vasco', '曹', 'Gary'];
 
-        // ---------- 完整陣型定義 ----------
+        // ---------- 陣型定義（完整） ----------
         const formations = {
             '321': {
                 positions: ['gk', 'lcb', 'cb', 'rcb', 'lm', 'rm', 'st'],
                 layout: {
-                    'gk': { left: '50%', top: '90%' }, 'lcb': { left: '10%', top: '50%' }, 'cb': { left: '50%', top: '65%' },
-                    'rcb': { left: '90%', top: '50%' }, 'lm': { left: '35%', top: '35%' }, 'rm': { left: '65%', top: '35%' }, 'st': { left: '50%', top: '15%' }
+                    'gk': { left: 50, top: 90 }, 'lcb': { left: 10, top: 50 }, 'cb': { left: 50, top: 65 },
+                    'rcb': { left: 90, top: 50 }, 'lm': { left: 35, top: 35 }, 'rm': { left: 65, top: 35 }, 'st': { left: 50, top: 15 }
                 },
                 details: {
                     'gk': { name: '門將 (GK)', tactics: '七人場的防守核心，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門線，果斷出擊攔截單刀或高空球。', example: 'Manuel Neuer - 出擊防守和傳球能力強的現代門將。' },
@@ -332,8 +282,8 @@
             '312': {
                 positions: ['gk', 'lcb', 'cb', 'rcb', 'cm', 'lst', 'rst'],
                 layout: {
-                    'gk': { left: '50%', top: '90%' }, 'lcb': { left: '30%', top: '70%' }, 'cb': { left: '50%', top: '70%' },
-                    'rcb': { left: '70%', top: '70%' }, 'cm': { left: '50%', top: '50%' }, 'lst': { left: '40%', top: '15%' }, 'rst': { left: '60%', top: '15%' }
+                    'gk': { left: 50, top: 90 }, 'lcb': { left: 30, top: 70 }, 'cb': { left: 50, top: 70 },
+                    'rcb': { left: 70, top: 70 }, 'cm': { left: 50, top: 50 }, 'lst': { left: 40, top: 15 }, 'rst': { left: 60, top: 15 }
                 },
                 details: {
                     'gk': { name: '門將 (GK)', tactics: '七人場的防守支柱，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門，快速出擊攔截單刀球。', example: 'Manuel Neuer - 出擊型門將典範。' },
@@ -348,8 +298,8 @@
             '231': {
                 positions: ['gk', 'lcb', 'rcb', 'lm', 'cm', 'rm', 'st'],
                 layout: {
-                    'gk': { left: '50%', top: '90%' }, 'lcb': { left: '35%', top: '70%' }, 'rcb': { left: '65%', top: '70%' },
-                    'lm': { left: '25%', top: '35%' }, 'cm': { left: '50%', top: '40%' }, 'rm': { left: '75%', top: '35%' }, 'st': { left: '50%', top: '15%' }
+                    'gk': { left: 50, top: 90 }, 'lcb': { left: 35, top: 70 }, 'rcb': { left: 65, top: 70 },
+                    'lm': { left: 25, top: 35 }, 'cm': { left: 50, top: 40 }, 'rm': { left: 75, top: 35 }, 'st': { left: 50, top: 15 }
                 },
                 details: {
                     'gk': { name: '門將 (GK)', tactics: '七人場的防守最後屏障，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門線，攔截單刀球。', example: 'Manuel Neuer - 出擊型門將。' },
@@ -365,10 +315,11 @@
 
         // 全域變數
         let currentFormation = '321';
-        let selectedPlayers = {};
-        let positionsPercent = {};
+        let selectedPlayers = {};      // 當前陣型球員選擇
+        let positionsPercent = {};     // 當前陣型百分比座標 { pos: { percentX, percentY } }
         let isRemoteUpdate = false;
-        let cloudDataCache = null;
+        let cloudDataCache = null;     // 完整雲端資料
+        let resizeTimer = null;        // 視窗大小變化防抖
 
         // DOM 元素
         const formationSelect = document.getElementById('formation-select');
@@ -379,16 +330,24 @@
         const syncStatusSpan = document.getElementById('sync-status');
 
         // ---------- 輔助函數 ----------
-        function percentToPixels(percentX, percentY, container) {
-            const left = (percentX / 100) * container.clientWidth;
-            const top = (percentY / 100) * container.clientHeight;
-            return { left, top };
+        function percentToPixels(percentX, percentY) {
+            const w = pitchContainer.clientWidth;
+            const h = pitchContainer.clientHeight;
+            if (w === 0 || h === 0) return { left: 0, top: 0 };
+            return {
+                left: (percentX / 100) * w,
+                top: (percentY / 100) * h
+            };
         }
 
-        function pixelsToPercent(leftPx, topPx, container) {
-            const percentX = (leftPx / container.clientWidth) * 100;
-            const percentY = (topPx / container.clientHeight) * 100;
-            return { percentX, percentY };
+        function pixelsToPercent(leftPx, topPx) {
+            const w = pitchContainer.clientWidth;
+            const h = pitchContainer.clientHeight;
+            if (w === 0 || h === 0) return { percentX: 0, percentY: 0 };
+            return {
+                percentX: (leftPx / w) * 100,
+                percentY: (topPx / h) * 100
+            };
         }
 
         // ---------- 雲端讀寫 ----------
@@ -399,6 +358,7 @@
                 const data = await response.json();
                 cloudDataCache = data.record;
 
+                // 確保所有陣型都有基礎結構
                 for (let f of ['321', '312', '231']) {
                     if (!cloudDataCache.formations[f]) cloudDataCache.formations[f] = { players: {}, coords: {} };
                 }
@@ -408,13 +368,28 @@
                 selectedPlayers = { ...cloudDataCache.formations[currentFormation].players };
                 positionsPercent = { ...cloudDataCache.formations[currentFormation].coords };
 
+                // 確保每個位置都有百分比，若無則使用預設
+                const layout = formations[currentFormation].layout;
+                for (let pos of formations[currentFormation].positions) {
+                    if (!positionsPercent[pos] || typeof positionsPercent[pos].percentX !== 'number') {
+                        positionsPercent[pos] = {
+                            percentX: layout[pos].left,
+                            percentY: layout[pos].top
+                        };
+                    }
+                }
+
                 rebuildUI();
                 syncStatusSpan.textContent = '✅ 已同步雲端';
             } catch (err) {
                 console.error('載入失敗', err);
                 syncStatusSpan.textContent = '⚠️ 無法連線雲端，使用本地模式';
+                // 使用陣型預設百分比
+                const layout = formations[currentFormation].layout;
+                for (let pos of formations[currentFormation].positions) {
+                    positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
+                }
                 selectedPlayers = {};
-                positionsPercent = {};
                 rebuildUI();
             }
         }
@@ -460,11 +435,18 @@
                 selectedPlayers = {};
                 positionsPercent = {};
             }
+            // 確保所有位置都有百分比
+            const layout = formations[currentFormation].layout;
+            for (let pos of formations[currentFormation].positions) {
+                if (!positionsPercent[pos] || typeof positionsPercent[pos].percentX !== 'number') {
+                    positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
+                }
+            }
             saveToCloud();
             rebuildUI();
         }
 
-        // ---------- 拖曳功能 ----------
+        // ---------- 拖曳功能（綁定單一圖示） ----------
         function makeDraggable(element, posKey) {
             let startX = 0, startY = 0;
             let startLeft = 0, startTop = 0;
@@ -535,8 +517,7 @@
                     const newLeft = parseFloat(element.style.left);
                     const newTop = parseFloat(element.style.top);
                     if (!isNaN(newLeft) && !isNaN(newTop)) {
-                        const containerRect = pitchContainer.getBoundingClientRect();
-                        const { percentX, percentY } = pixelsToPercent(newLeft, newTop, containerRect);
+                        const { percentX, percentY } = pixelsToPercent(newLeft, newTop);
                         updatePositionToCloud(posKey, percentX, percentY);
                     }
                 } else {
@@ -550,32 +531,20 @@
             element.addEventListener('touchstart', onPointerDown, { passive: false });
         }
 
-        // ---------- 重新定位所有圖示（不重建 DOM） ----------
+        // ---------- 重新定位所有圖示（不重建 DOM，僅更新 left/top） ----------
         function repositionAllPlayers() {
             const formation = formations[currentFormation];
             if (!formation) return;
 
-            formation.positions.forEach(pos => {
+            for (let pos of formation.positions) {
                 const playerDiv = document.getElementById(`${pos}-player`);
-                if (!playerDiv) return;
-
-                let percentX, percentY;
-                if (positionsPercent[pos] && positionsPercent[pos].percentX !== undefined) {
-                    percentX = positionsPercent[pos].percentX;
-                    percentY = positionsPercent[pos].percentY;
-                } else {
-                    const layout = formation.layout[pos];
-                    percentX = parseFloat(layout.left);
-                    percentY = parseFloat(layout.top);
-                    positionsPercent[pos] = { percentX, percentY };
-                }
-
-                if (pitchContainer.clientWidth > 0 && pitchContainer.clientHeight > 0) {
-                    const { left, top } = percentToPixels(percentX, percentY, pitchContainer);
-                    playerDiv.style.left = left + 'px';
-                    playerDiv.style.top = top + 'px';
-                }
-            });
+                if (!playerDiv) continue;
+                const percent = positionsPercent[pos];
+                if (!percent || typeof percent.percentX !== 'number') continue;
+                const { left, top } = percentToPixels(percent.percentX, percent.percentY);
+                playerDiv.style.left = left + 'px';
+                playerDiv.style.top = top + 'px';
+            }
         }
 
         // ---------- 重建完整 UI ----------
@@ -585,7 +554,7 @@
 
             // 左側下拉選單
             positionsContainer.innerHTML = '';
-            formation.positions.forEach(pos => {
+            for (let pos of formation.positions) {
                 const label = document.createElement('label');
                 label.textContent = formation.details[pos].name + ':';
                 const select = document.createElement('select');
@@ -600,41 +569,39 @@
                 };
                 positionsContainer.appendChild(label);
                 positionsContainer.appendChild(select);
-            });
+            }
 
-            // 清空球場，重建圖示
+            // 重建球場圖示
             pitchContainer.innerHTML = '<div id="pitch-error" style="display: none;">無法加載足球場圖片</div>';
-            formation.positions.forEach(pos => {
+            for (let pos of formation.positions) {
                 const playerDiv = document.createElement('div');
                 playerDiv.className = 'player';
                 playerDiv.id = `${pos}-player`;
                 playerDiv.textContent = selectedPlayers[pos] || pos.toUpperCase();
                 pitchContainer.appendChild(playerDiv);
-            });
+            }
 
-            // 等待 DOM 渲染完成後再計算位置
-            requestAnimationFrame(() => {
+            // 等待 DOM 渲染完成後計算位置
+            const applyPositions = () => {
                 if (pitchContainer.clientWidth === 0 || pitchContainer.clientHeight === 0) {
-                    requestAnimationFrame(() => repositionAllPlayers());
-                } else {
-                    repositionAllPlayers();
+                    requestAnimationFrame(applyPositions);
+                    return;
                 }
-            });
-
-            // 綁定拖曳（需等待元素存在）
-            setTimeout(() => {
-                formation.positions.forEach(pos => {
+                repositionAllPlayers();
+                // 綁定拖曳（確保只綁一次）
+                for (let pos of formation.positions) {
                     const playerDiv = document.getElementById(`${pos}-player`);
                     if (playerDiv && !playerDiv.hasAttribute('data-draggable-bound')) {
                         makeDraggable(playerDiv, pos);
                         playerDiv.setAttribute('data-draggable-bound', 'true');
                     }
-                });
-            }, 50);
+                }
+            };
+            requestAnimationFrame(applyPositions);
 
             // 右側戰術面板
             positionDetailsDiv.innerHTML = '';
-            formation.positions.forEach(pos => {
+            for (let pos of formation.positions) {
                 const info = formation.details[pos];
                 positionDetailsDiv.innerHTML += `
                     <div id="${pos}-info" class="position-info">
@@ -646,7 +613,7 @@
                         <p><strong>代表球員:</strong> ${info.example}</p>
                     </div>
                 `;
-            });
+            }
 
             if (formation.positions.length) showPositionDetails(formation.positions[0]);
             updatePitchAndSubs();
@@ -655,12 +622,12 @@
         function updatePitchAndSubs() {
             const formation = formations[currentFormation];
             const selectedSet = new Set();
-            formation.positions.forEach(pos => {
+            for (let pos of formation.positions) {
                 const playerDiv = document.getElementById(`${pos}-player`);
                 const playerName = selectedPlayers[pos] || "";
                 if (playerDiv) playerDiv.textContent = playerName || pos.toUpperCase();
                 if (playerName) selectedSet.add(playerName);
-            });
+            }
             const subs = players.filter(p => !selectedSet.has(p));
             subsListDiv.innerHTML = subs.map(p => `<p>${p}</p>`).join('');
         }
@@ -682,13 +649,17 @@
             document.getElementById('btn-auto').classList.toggle('active', mode === 'auto');
             document.getElementById('btn-mobile').classList.toggle('active', mode === 'mobile');
             document.getElementById('btn-desktop').classList.toggle('active', mode === 'desktop');
+            // 佈局改變後容器尺寸會變，需重新定位
             requestAnimationFrame(() => repositionAllPlayers());
         }
 
         // ---------- 視窗大小變化監聽 ----------
         function initResizeListener() {
             window.addEventListener('resize', () => {
-                requestAnimationFrame(() => repositionAllPlayers());
+                if (resizeTimer) clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    repositionAllPlayers();
+                }, 100);
             });
         }
 
