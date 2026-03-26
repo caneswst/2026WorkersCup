@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>傲翔2026工人盃戰術板</title>
+    <title>傲翔2026工人盃戰術板 - 影片列表共享版 (最新置頂)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap');
 
@@ -314,7 +314,7 @@
 </head>
 <body>
     <div id="header">
-        <h1>傲翔2026工人盃戰術板</h1>
+        <h1>傲翔2026工人盃戰術板 (影片列表共享版 - 最新置頂)</h1>
         <div class="layout-switch">
             <button id="btn-desktop" class="layout-btn">💻 電腦版</button>
             <button id="btn-mobile" class="layout-btn">📱 手機版</button>
@@ -344,9 +344,9 @@
             <h2>請點選位置顯示戰術要求</h2>
             <div id="position-details"></div>
 
-            <!-- 共享區塊：影片列表（可新增、刪除，永不覆蓋） -->
+            <!-- 共享區塊：影片列表（最新上傳置頂） -->
             <div class="share-section">
-                <h3>📺 影片、相片列表</h3>
+                <h3>📺 戰術影片列表 (最新上傳顯示在最頂部)</h3>
                 <div class="youtube-group">
                     <div class="input-row">
                         <input type="text" id="videoTitleInput" placeholder="影片名稱 (例如：決賽戰術分析)" value="">
@@ -459,16 +459,22 @@
             return { percentX: (leftPx / w) * 100, percentY: (topPx / h) * 100 };
         }
 
-        // 渲染影片列表
+        // 渲染影片列表（按時間戳倒序，最新置頂）
         function renderVideoList(videos) {
             if (!videos || videos.length === 0) {
                 videoListContainer.innerHTML = '<div style="color:#888; text-align:center;">📭 暫無影片，請新增</div>';
                 return;
             }
+
+            // 為每個視頻添加原始索引，以便刪除時能正確刪除原數組中的對象
+            const indexed = videos.map((v, idx) => ({ ...v, originalIndex: idx }));
+            // 按 timestamp 降序排序，最新在上
+            indexed.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
             let html = '';
-            videos.forEach((video, index) => {
-                const title = video.title && video.title.trim() !== '' ? video.title : '未命名影片';
-                const url = video.url || '';
+            for (const item of indexed) {
+                const title = item.title && item.title.trim() !== '' ? item.title : '未命名影片';
+                const url = item.url || '';
                 html += `
                     <div class="video-item">
                         <div class="video-info">
@@ -477,19 +483,20 @@
                         </div>
                         <div class="video-actions">
                             <a href="${escapeHtml(url)}" target="_blank" class="play-btn">▶ 播放</a>
-                            <button class="delete-btn" data-index="${index}">🗑️ 刪除</button>
+                            <button class="delete-btn" data-original-index="${item.originalIndex}">🗑️ 刪除</button>
                         </div>
                     </div>
                 `;
-            });
+            }
             videoListContainer.innerHTML = html;
-            // 綁定刪除事件
+
+            // 綁定刪除事件（使用原始索引）
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
-                    const idx = parseInt(btn.getAttribute('data-index'));
-                    if (!isNaN(idx) && cloudDataCache && cloudDataCache.videos) {
+                    const originalIdx = parseInt(btn.getAttribute('data-original-index'));
+                    if (!isNaN(originalIdx) && cloudDataCache && cloudDataCache.videos && cloudDataCache.videos[originalIdx]) {
                         if (confirm('確定要刪除此影片嗎？')) {
-                            cloudDataCache.videos.splice(idx, 1);
+                            cloudDataCache.videos.splice(originalIdx, 1);
                             await saveToCloud();
                             renderVideoList(cloudDataCache.videos);
                             syncStatusSpan.textContent = '✅ 已刪除影片';
@@ -513,7 +520,7 @@
             });
         }
 
-        // 新增影片
+        // 新增影片（帶時間戳，用於排序）
         async function addVideo() {
             if (!cloudDataCache) return;
             const title = videoTitleInput.value.trim();
@@ -536,7 +543,7 @@
                 cloudDataCache.videos.push({
                     title: title,
                     url: url,
-                    timestamp: Date.now()
+                    timestamp: Date.now()   // 記錄上傳時間，用於排序
                 });
                 await saveToCloud();
                 renderVideoList(cloudDataCache.videos);
@@ -572,13 +579,13 @@
                     if (!cloudDataCache.formations[f]) cloudDataCache.formations[f] = { players: {}, coords: {} };
                 }
                 
-                // 影片列表：處理舊版單一 video 對象，轉為陣列
+                // 影片列表：處理舊版單一 video 對象，轉為陣列並補上時間戳
                 if (cloudDataCache.video && !cloudDataCache.videos) {
                     if (cloudDataCache.video.url) {
                         cloudDataCache.videos = [{
                             title: cloudDataCache.video.title || '',
                             url: cloudDataCache.video.url,
-                            timestamp: Date.now()
+                            timestamp: Date.now() - 86400000 // 舊數據給一個較早的時間，讓新數據置頂
                         }];
                     } else {
                         cloudDataCache.videos = [];
@@ -588,8 +595,12 @@
                     cloudDataCache.videos = [];
                 }
                 
-                // 確保 videos 是陣列
-                if (!Array.isArray(cloudDataCache.videos)) {
+                // 確保 videos 是陣列，並為沒有時間戳的項目補上默認時間（讓它們排在較後）
+                if (Array.isArray(cloudDataCache.videos)) {
+                    for (let v of cloudDataCache.videos) {
+                        if (!v.timestamp) v.timestamp = 0;
+                    }
+                } else {
                     cloudDataCache.videos = [];
                 }
 
