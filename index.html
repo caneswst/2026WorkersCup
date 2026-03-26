@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>傲翔2026工人盃戰術板 - 穩定同步版</title>
+    <title>傲翔2026工人盃戰術板 - YouTube 共享版</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap');
 
@@ -187,8 +187,88 @@
             border-radius: 4px;
             text-align: center;
         }
-
-        /* 手機/電腦強制模式（與之前相同，此處省略完整內容，實際使用時保留完整） */
+        /* YouTube 分享區塊樣式 */
+        .youtube-share {
+            margin-top: 20px;
+            padding: 12px 10px;
+            background: #f0f7f0;
+            border-radius: 12px;
+            border-left: 5px solid #ff0000;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        .youtube-share h3 {
+            color: #c4302b;
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .youtube-input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .youtube-input-group input {
+            flex: 3;
+            min-width: 150px;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 25px;
+            font-size: 13px;
+            background: white;
+            font-family: monospace;
+            user-select: text;
+        }
+        .youtube-input-group button {
+            background: #2e8b57;
+            border: none;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .youtube-input-group button:hover {
+            background: #1f6e43;
+            transform: scale(0.98);
+        }
+        .youtube-link-preview {
+            font-size: 12px;
+            background: #fff;
+            padding: 8px;
+            border-radius: 20px;
+            word-break: break-all;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .youtube-link-preview a {
+            color: #4682b4;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .youtube-link-preview a:hover {
+            text-decoration: underline;
+        }
+        .open-link-btn {
+            background: #ff0000;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .open-link-btn:hover {
+            background: #cc0000;
+        }
+        /* 手機/電腦強制模式 */
         body.force-mobile .container { flex-direction: column; padding: 2vw; }
         body.force-mobile #pitch-container { width: 100%; min-height: 50vh; max-height: 400px; flex: none; }
         body.force-mobile #left-panel, body.force-mobile #subs-container, body.force-mobile #right-panel { width: 100%; min-height: 30vh; margin-top: 2vw; flex: none; }
@@ -220,7 +300,7 @@
 </head>
 <body>
     <div id="header">
-        <h1>傲翔2026工人盃戰術板 (穩定同步版)</h1>
+        <h1>傲翔2026工人盃戰術板 (YouTube共享版)</h1>
         <div class="layout-switch">
             <button id="btn-desktop" class="layout-btn">💻 電腦版</button>
             <button id="btn-mobile" class="layout-btn">📱 手機版</button>
@@ -249,6 +329,21 @@
         <div id="right-panel">
             <h2>請點選位置顯示戰術要求</h2>
             <div id="position-details"></div>
+
+            <!-- ========= YouTube 共享區塊 ========= -->
+            <div class="youtube-share" id="youtubeSection">
+                <h3>🎬 戰術影片 / 分析連結 (共享)</h3>
+                <div class="youtube-input-group">
+                    <input type="text" id="youtubeUrlInput" placeholder="貼上 YouTube 連結，例如 https://youtu.be/... 或 https://www.youtube.com/watch?v=..." value="">
+                    <button id="saveYoutubeBtn">💾 儲存連結</button>
+                </div>
+                <div id="youtubePreview" class="youtube-link-preview">
+                    <span>📌 目前共享連結：</span>
+                    <span id="currentYoutubeLinkDisplay">尚未設定</span>
+                    <a id="openYoutubeLink" href="#" target="_blank" class="open-link-btn" style="display: none;">🔗 開啟影片</a>
+                </div>
+                <p style="font-size: 10px; color: #666; margin-top: 6px;">* 所有使用者看到的連結相同，儲存後即時同步</p>
+            </div>
         </div>
     </div>
 
@@ -261,7 +356,7 @@
         // 球員名單
         const players = ['禮', '新', 'Mike', 'Dan', '東', '軍c', 'Xander', 'Alex', '光', 'Frankie', 'Ivan', 'Vasco', '曹', 'Gary'];
 
-        // ---------- 陣型定義（完整） ----------
+        // ---------- 陣型定義 ----------
         const formations = {
             '321': {
                 positions: ['gk', 'lcb', 'cb', 'rcb', 'lm', 'rm', 'st'],
@@ -315,11 +410,11 @@
 
         // 全域變數
         let currentFormation = '321';
-        let selectedPlayers = {};      // 當前陣型球員選擇
-        let positionsPercent = {};     // 當前陣型百分比座標 { pos: { percentX, percentY } }
+        let selectedPlayers = {};
+        let positionsPercent = {};
         let isRemoteUpdate = false;
-        let cloudDataCache = null;     // 完整雲端資料
-        let resizeTimer = null;        // 視窗大小變化防抖
+        let cloudDataCache = null;
+        let resizeTimer = null;
 
         // DOM 元素
         const formationSelect = document.getElementById('formation-select');
@@ -328,68 +423,95 @@
         const subsListDiv = document.getElementById('subs-list');
         const positionDetailsDiv = document.getElementById('position-details');
         const syncStatusSpan = document.getElementById('sync-status');
+        // YouTube 相關 DOM
+        const youtubeUrlInput = document.getElementById('youtubeUrlInput');
+        const saveYoutubeBtn = document.getElementById('saveYoutubeBtn');
+        const currentYoutubeLinkDisplay = document.getElementById('currentYoutubeLinkDisplay');
+        const openYoutubeLink = document.getElementById('openYoutubeLink');
 
         // ---------- 輔助函數 ----------
         function percentToPixels(percentX, percentY) {
             const w = pitchContainer.clientWidth;
             const h = pitchContainer.clientHeight;
             if (w === 0 || h === 0) return { left: 0, top: 0 };
-            return {
-                left: (percentX / 100) * w,
-                top: (percentY / 100) * h
-            };
+            return { left: (percentX / 100) * w, top: (percentY / 100) * h };
         }
 
         function pixelsToPercent(leftPx, topPx) {
             const w = pitchContainer.clientWidth;
             const h = pitchContainer.clientHeight;
             if (w === 0 || h === 0) return { percentX: 0, percentY: 0 };
-            return {
-                percentX: (leftPx / w) * 100,
-                percentY: (topPx / h) * 100
-            };
+            return { percentX: (leftPx / w) * 100, percentY: (topPx / h) * 100 };
         }
 
-        // ---------- 雲端讀寫 ----------
+        // 更新 YouTube UI 顯示
+        function updateYoutubeUI(url) {
+            if (!url || url.trim() === '') {
+                currentYoutubeLinkDisplay.textContent = '尚未設定';
+                openYoutubeLink.style.display = 'none';
+                youtubeUrlInput.value = '';
+            } else {
+                currentYoutubeLinkDisplay.textContent = url;
+                openYoutubeLink.href = url;
+                openYoutubeLink.style.display = 'inline-block';
+                youtubeUrlInput.value = url;
+            }
+        }
+
+        // 儲存 YouTube 連結至雲端
+        async function saveYoutubeToCloud(url) {
+            if (!cloudDataCache) return;
+            const trimmedUrl = url.trim();
+            cloudDataCache.youtubeUrl = trimmedUrl;
+            await saveToCloud();
+            updateYoutubeUI(trimmedUrl);
+            syncStatusSpan.textContent = '✅ 影片連結已儲存';
+            setTimeout(() => {
+                if (syncStatusSpan.textContent === '✅ 影片連結已儲存') 
+                    syncStatusSpan.textContent = '✅ 已同步雲端';
+            }, 1800);
+        }
+
+        // ---------- 雲端讀寫 (擴充 youtubeUrl) ----------
         async function loadFromCloud() {
             syncStatusSpan.textContent = '📡 載入中...';
             try {
                 const response = await fetch(API_URL, { headers: { 'X-Master-Key': API_KEY } });
                 const data = await response.json();
-                cloudDataCache = data.record;
+                cloudDataCache = data.record || {};
 
-                // 確保所有陣型都有基礎結構
+                // 確保 formations 與 youtubeUrl 存在
+                if (!cloudDataCache.formations) cloudDataCache.formations = {};
                 for (let f of ['321', '312', '231']) {
                     if (!cloudDataCache.formations[f]) cloudDataCache.formations[f] = { players: {}, coords: {} };
                 }
+                if (cloudDataCache.youtubeUrl === undefined) cloudDataCache.youtubeUrl = "";
 
                 currentFormation = cloudDataCache.currentFormation || '321';
                 formationSelect.value = currentFormation;
                 selectedPlayers = { ...cloudDataCache.formations[currentFormation].players };
                 positionsPercent = { ...cloudDataCache.formations[currentFormation].coords };
 
-                // 確保每個位置都有百分比，若無則使用預設
                 const layout = formations[currentFormation].layout;
                 for (let pos of formations[currentFormation].positions) {
                     if (!positionsPercent[pos] || typeof positionsPercent[pos].percentX !== 'number') {
-                        positionsPercent[pos] = {
-                            percentX: layout[pos].left,
-                            percentY: layout[pos].top
-                        };
+                        positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
                     }
                 }
 
+                // 刷新 YouTube UI
+                updateYoutubeUI(cloudDataCache.youtubeUrl || "");
                 rebuildUI();
                 syncStatusSpan.textContent = '✅ 已同步雲端';
             } catch (err) {
                 console.error('載入失敗', err);
                 syncStatusSpan.textContent = '⚠️ 無法連線雲端，使用本地模式';
-                // 使用陣型預設百分比
                 const layout = formations[currentFormation].layout;
                 for (let pos of formations[currentFormation].positions) {
                     positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
                 }
                 selectedPlayers = {};
+                cloudDataCache = cloudDataCache || { formations: {}, youtubeUrl: "" };
                 rebuildUI();
             }
         }
@@ -397,8 +519,13 @@
         async function saveToCloud() {
             if (isRemoteUpdate || !cloudDataCache) return;
             cloudDataCache.currentFormation = currentFormation;
-            cloudDataCache.formations[currentFormation].players = selectedPlayers;
-            cloudDataCache.formations[currentFormation].coords = positionsPercent;
+            if (!cloudDataCache.formations) cloudDataCache.formations = {};
+            cloudDataCache.formations[currentFormation] = {
+                players: selectedPlayers,
+                coords: positionsPercent
+            };
+            // 確保 youtubeUrl 欄位保留
+            if (cloudDataCache.youtubeUrl === undefined) cloudDataCache.youtubeUrl = "";
 
             try {
                 await fetch(API_URL, {
@@ -435,7 +562,6 @@
                 selectedPlayers = {};
                 positionsPercent = {};
             }
-            // 確保所有位置都有百分比
             const layout = formations[currentFormation].layout;
             for (let pos of formations[currentFormation].positions) {
                 if (!positionsPercent[pos] || typeof positionsPercent[pos].percentX !== 'number') {
@@ -446,175 +572,97 @@
             rebuildUI();
         }
 
-        // ---------- 拖曳功能（綁定單一圖示） ----------
-        function makeDraggable(element, posKey) {
-            let startX = 0, startY = 0;
-            let startLeft = 0, startTop = 0;
-            let isDragging = false;
-            let dragStarted = false;
-            let hasMoved = false;
+        // ---------- 拖曳、重定位與介面重建 (同原有邏輯，確保不影響) ----------
+        function makeDraggable(element, posKey) { /* 保持原有完整拖曳邏輯，因篇幅略縮但功能完全 */
+            let startX = 0, startY = 0, startLeft = 0, startTop = 0, isDragging = false, dragStarted = false, hasMoved = false;
             const container = pitchContainer;
-
             function onPointerDown(e) {
-                e.preventDefault();
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
                 const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
-                startX = clientX;
-                startY = clientY;
-                const rect = element.getBoundingClientRect();
-                const containerRect = container.getBoundingClientRect();
-                startLeft = rect.left - containerRect.left;
-                startTop = rect.top - containerRect.top;
-                element.style.left = startLeft + 'px';
-                element.style.top = startTop + 'px';
-                isDragging = true;
-                dragStarted = false;
-                hasMoved = false;
-                window.addEventListener('mousemove', onPointerMove);
-                window.addEventListener('mouseup', onPointerUp);
-                window.addEventListener('touchmove', onPointerMove, { passive: false });
-                window.addEventListener('touchend', onPointerUp);
-                window.addEventListener('touchcancel', onPointerUp);
+                startX = clientX; startY = clientY;
+                const rect = element.getBoundingClientRect(), containerRect = container.getBoundingClientRect();
+                startLeft = rect.left - containerRect.left; startTop = rect.top - containerRect.top;
+                element.style.left = startLeft + 'px'; element.style.top = startTop + 'px';
+                isDragging = true; dragStarted = false; hasMoved = false;
+                window.addEventListener('mousemove', onPointerMove); window.addEventListener('mouseup', onPointerUp);
+                window.addEventListener('touchmove', onPointerMove, { passive: false }); window.addEventListener('touchend', onPointerUp); window.addEventListener('touchcancel', onPointerUp);
                 element.classList.add('dragging');
             }
-
             function onPointerMove(e) {
-                if (!isDragging) return;
-                e.preventDefault();
+                if (!isDragging) return; e.preventDefault();
                 const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
                 const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
-                const dx = clientX - startX;
-                const dy = clientY - startY;
-                if (!dragStarted && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
-                    dragStarted = true;
-                    hasMoved = true;
-                }
+                const dx = clientX - startX, dy = clientY - startY;
+                if (!dragStarted && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) { dragStarted = true; hasMoved = true; }
                 if (dragStarted) {
-                    let newLeft = startLeft + dx;
-                    let newTop = startTop + dy;
-                    const containerRect = container.getBoundingClientRect();
-                    const elemRect = element.getBoundingClientRect();
-                    const maxLeft = containerRect.width - elemRect.width;
-                    const maxTop = containerRect.height - elemRect.height;
-                    newLeft = Math.min(Math.max(0, newLeft), maxLeft);
-                    newTop = Math.min(Math.max(0, newTop), maxTop);
-                    element.style.left = newLeft + 'px';
-                    element.style.top = newTop + 'px';
+                    let newLeft = startLeft + dx, newTop = startTop + dy;
+                    const containerRect = container.getBoundingClientRect(), elemRect = element.getBoundingClientRect();
+                    newLeft = Math.min(Math.max(0, newLeft), containerRect.width - elemRect.width);
+                    newTop = Math.min(Math.max(0, newTop), containerRect.height - elemRect.height);
+                    element.style.left = newLeft + 'px'; element.style.top = newTop + 'px';
                 }
             }
-
             function onPointerUp() {
-                if (!isDragging) return;
-                isDragging = false;
-                element.classList.remove('dragging');
-                window.removeEventListener('mousemove', onPointerMove);
-                window.removeEventListener('mouseup', onPointerUp);
-                window.removeEventListener('touchmove', onPointerMove);
-                window.removeEventListener('touchend', onPointerUp);
-                window.removeEventListener('touchcancel', onPointerUp);
+                if (!isDragging) return; isDragging = false; element.classList.remove('dragging');
+                window.removeEventListener('mousemove', onPointerMove); window.removeEventListener('mouseup', onPointerUp);
+                window.removeEventListener('touchmove', onPointerMove); window.removeEventListener('touchend', onPointerUp); window.removeEventListener('touchcancel', onPointerUp);
                 if (hasMoved) {
-                    const newLeft = parseFloat(element.style.left);
-                    const newTop = parseFloat(element.style.top);
+                    const newLeft = parseFloat(element.style.left), newTop = parseFloat(element.style.top);
                     if (!isNaN(newLeft) && !isNaN(newTop)) {
                         const { percentX, percentY } = pixelsToPercent(newLeft, newTop);
                         updatePositionToCloud(posKey, percentX, percentY);
                     }
-                } else {
-                    showPositionDetails(posKey);
-                }
-                hasMoved = false;
-                dragStarted = false;
+                } else { showPositionDetails(posKey); }
+                hasMoved = false; dragStarted = false;
             }
-
-            element.addEventListener('mousedown', onPointerDown);
-            element.addEventListener('touchstart', onPointerDown, { passive: false });
+            element.addEventListener('mousedown', onPointerDown); element.addEventListener('touchstart', onPointerDown, { passive: false });
         }
 
-        // ---------- 重新定位所有圖示（不重建 DOM，僅更新 left/top） ----------
         function repositionAllPlayers() {
             const formation = formations[currentFormation];
             if (!formation) return;
-
             for (let pos of formation.positions) {
                 const playerDiv = document.getElementById(`${pos}-player`);
                 if (!playerDiv) continue;
                 const percent = positionsPercent[pos];
                 if (!percent || typeof percent.percentX !== 'number') continue;
                 const { left, top } = percentToPixels(percent.percentX, percent.percentY);
-                playerDiv.style.left = left + 'px';
-                playerDiv.style.top = top + 'px';
+                playerDiv.style.left = left + 'px'; playerDiv.style.top = top + 'px';
             }
         }
 
-        // ---------- 重建完整 UI ----------
         function rebuildUI() {
             const formation = formations[currentFormation];
             if (!formation) return;
-
-            // 左側下拉選單
             positionsContainer.innerHTML = '';
             for (let pos of formation.positions) {
-                const label = document.createElement('label');
-                label.textContent = formation.details[pos].name + ':';
-                const select = document.createElement('select');
-                select.id = pos;
+                const label = document.createElement('label'); label.textContent = formation.details[pos].name + ':';
+                const select = document.createElement('select'); select.id = pos;
                 select.innerHTML = '<option value="">選擇球員</option>' + players.map(p => `<option value="${p}">${p}</option>`).join('');
                 if (selectedPlayers[pos]) select.value = selectedPlayers[pos];
-                select.onchange = (e) => {
-                    const newVal = e.target.value;
-                    selectedPlayers[pos] = newVal;
-                    updatePlayerToCloud(pos, newVal);
-                    updatePitchAndSubs();
-                };
-                positionsContainer.appendChild(label);
-                positionsContainer.appendChild(select);
+                select.onchange = (e) => { selectedPlayers[pos] = e.target.value; updatePlayerToCloud(pos, e.target.value); updatePitchAndSubs(); };
+                positionsContainer.appendChild(label); positionsContainer.appendChild(select);
             }
-
-            // 重建球場圖示
             pitchContainer.innerHTML = '<div id="pitch-error" style="display: none;">無法加載足球場圖片</div>';
             for (let pos of formation.positions) {
-                const playerDiv = document.createElement('div');
-                playerDiv.className = 'player';
-                playerDiv.id = `${pos}-player`;
-                playerDiv.textContent = selectedPlayers[pos] || pos.toUpperCase();
-                pitchContainer.appendChild(playerDiv);
+                const playerDiv = document.createElement('div'); playerDiv.className = 'player'; playerDiv.id = `${pos}-player`;
+                playerDiv.textContent = selectedPlayers[pos] || pos.toUpperCase(); pitchContainer.appendChild(playerDiv);
             }
-
-            // 等待 DOM 渲染完成後計算位置
             const applyPositions = () => {
-                if (pitchContainer.clientWidth === 0 || pitchContainer.clientHeight === 0) {
-                    requestAnimationFrame(applyPositions);
-                    return;
-                }
+                if (pitchContainer.clientWidth === 0 || pitchContainer.clientHeight === 0) { requestAnimationFrame(applyPositions); return; }
                 repositionAllPlayers();
-                // 綁定拖曳（確保只綁一次）
                 for (let pos of formation.positions) {
                     const playerDiv = document.getElementById(`${pos}-player`);
-                    if (playerDiv && !playerDiv.hasAttribute('data-draggable-bound')) {
-                        makeDraggable(playerDiv, pos);
-                        playerDiv.setAttribute('data-draggable-bound', 'true');
-                    }
+                    if (playerDiv && !playerDiv.hasAttribute('data-draggable-bound')) { makeDraggable(playerDiv, pos); playerDiv.setAttribute('data-draggable-bound', 'true'); }
                 }
             };
             requestAnimationFrame(applyPositions);
-
-            // 右側戰術面板
             positionDetailsDiv.innerHTML = '';
             for (let pos of formation.positions) {
                 const info = formation.details[pos];
-                positionDetailsDiv.innerHTML += `
-                    <div id="${pos}-info" class="position-info">
-                        <h3>${info.name}</h3>
-                        <p><strong>戰術要求:</strong> ${info.tactics}</p>
-                        <p><strong>技術要求:</strong> ${info.tech}</p>
-                        <p><strong>進攻時位置要求:</strong> ${info.off}</p>
-                        <p><strong>防守時位置要求:</strong> ${info.def}</p>
-                        <p><strong>代表球員:</strong> ${info.example}</p>
-                    </div>
-                `;
+                positionDetailsDiv.innerHTML += `<div id="${pos}-info" class="position-info"><h3>${info.name}</h3><p><strong>戰術要求:</strong> ${info.tactics}</p><p><strong>技術要求:</strong> ${info.tech}</p><p><strong>進攻時位置要求:</strong> ${info.off}</p><p><strong>防守時位置要求:</strong> ${info.def}</p><p><strong>代表球員:</strong> ${info.example}</p></div>`;
             }
-
             if (formation.positions.length) showPositionDetails(formation.positions[0]);
             updatePitchAndSubs();
         }
@@ -638,7 +686,7 @@
             if (target) target.style.display = 'block';
         }
 
-        // ---------- 手機/電腦版切換 ----------
+        // 版面切換
         let currentLayout = 'auto';
         function setLayoutMode(mode) {
             currentLayout = mode;
@@ -649,43 +697,36 @@
             document.getElementById('btn-auto').classList.toggle('active', mode === 'auto');
             document.getElementById('btn-mobile').classList.toggle('active', mode === 'mobile');
             document.getElementById('btn-desktop').classList.toggle('active', mode === 'desktop');
-            // 佈局改變後容器尺寸會變，需重新定位
             requestAnimationFrame(() => repositionAllPlayers());
         }
 
-        // ---------- 視窗大小變化監聽 ----------
         function initResizeListener() {
             window.addEventListener('resize', () => {
                 if (resizeTimer) clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(() => {
-                    repositionAllPlayers();
-                }, 100);
+                resizeTimer = setTimeout(() => repositionAllPlayers(), 100);
             });
         }
 
         // 事件綁定
-        formationSelect.onchange = () => {
-            const newForm = formationSelect.value;
-            if (newForm === currentFormation) return;
-            updateFormationToCloud(newForm);
-        };
+        formationSelect.onchange = () => { const newForm = formationSelect.value; if (newForm !== currentFormation) updateFormationToCloud(newForm); };
         document.getElementById('btn-auto').addEventListener('click', () => setLayoutMode('auto'));
         document.getElementById('btn-mobile').addEventListener('click', () => setLayoutMode('mobile'));
         document.getElementById('btn-desktop').addEventListener('click', () => setLayoutMode('desktop'));
 
-        // 載入上次佈局偏好
+        // YouTube 儲存按鈕
+        saveYoutubeBtn.addEventListener('click', () => {
+            const newUrl = youtubeUrlInput.value.trim();
+            saveYoutubeToCloud(newUrl);
+        });
+
         const savedLayout = localStorage.getItem('layoutMode');
         if (savedLayout && ['auto', 'mobile', 'desktop'].includes(savedLayout)) setLayoutMode(savedLayout);
         else setLayoutMode('auto');
 
-        // 圖片錯誤處理
         const imgTest = new Image();
         imgTest.src = 'https://raw.githubusercontent.com/caneswst/Falcon352/refs/heads/main/football_pitch.jpg';
-        imgTest.onerror = () => {
-            document.getElementById('pitch-error').style.display = 'block';
-        };
+        imgTest.onerror = () => { document.getElementById('pitch-error').style.display = 'block'; };
 
-        // 啟動
         initResizeListener();
         loadFromCloud();
     </script>
