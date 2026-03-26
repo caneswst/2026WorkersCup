@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>傲翔2026工人盃戰術板 - 影片列表+圖片共享版</title>
+    <title>傲翔2026工人盃戰術板 - 影片列表共享版</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap');
 
@@ -205,10 +205,8 @@
             align-items: center;
             gap: 6px;
         }
-        .youtube-group, .image-group {
-            margin-bottom: 16px;
-            border-bottom: 1px dashed #ccc;
-            padding-bottom: 12px;
+        .youtube-group {
+            margin-bottom: 8px;
         }
         .input-row {
             display: flex;
@@ -238,7 +236,7 @@
             cursor: not-allowed;
         }
         .video-list {
-            max-height: 250px;
+            max-height: 300px;
             overflow-y: auto;
             margin-top: 8px;
         }
@@ -284,24 +282,6 @@
         .video-actions .delete-btn {
             background: #dc3545;
         }
-        .preview-box {
-            background: #fff;
-            padding: 8px;
-            border-radius: 12px;
-            margin-top: 8px;
-            font-size: 12px;
-            word-break: break-all;
-        }
-        .image-preview {
-            max-width: 100%;
-            max-height: 150px;
-            border-radius: 8px;
-            margin-top: 6px;
-            border: 1px solid #ddd;
-        }
-        .clear-btn {
-            background: #aaa !important;
-        }
         /* 手機/電腦強制模式 */
         body.force-mobile .container { flex-direction: column; padding: 2vw; }
         body.force-mobile #pitch-container { width: 100%; min-height: 50vh; max-height: 400px; flex: none; }
@@ -334,7 +314,7 @@
 </head>
 <body>
     <div id="header">
-        <h1>傲翔2026工人盃戰術板</h1>
+        <h1>傲翔2026工人盃戰術板 (影片列表共享版)</h1>
         <div class="layout-switch">
             <button id="btn-desktop" class="layout-btn">💻 電腦版</button>
             <button id="btn-mobile" class="layout-btn">📱 手機版</button>
@@ -374,12 +354,9 @@
                         <button id="addVideoBtn">➕ 新增影片</button>
                     </div>
                     <div id="videoListContainer" class="video-list">
-                        <!-- 動態顯示影片列表 -->
                         <div style="color:#888; text-align:center;">載入中...</div>
                     </div>
                 </div>
-
-
             </div>
         </div>
     </div>
@@ -452,7 +429,7 @@
         let isRemoteUpdate = false;
         let cloudDataCache = null;
         let resizeTimer = null;
-        let isSaving = false;  // 防止同時儲存
+        let isSaving = false;
 
         // DOM 元素
         const formationSelect = document.getElementById('formation-select');
@@ -466,12 +443,6 @@
         const videoUrlInput = document.getElementById('videoUrlInput');
         const addVideoBtn = document.getElementById('addVideoBtn');
         const videoListContainer = document.getElementById('videoListContainer');
-        // 圖片相關
-        const imageUpload = document.getElementById('imageUpload');
-        const uploadImageBtn = document.getElementById('uploadImageBtn');
-        const clearImageBtn = document.getElementById('clearImageBtn');
-        const sharedImage = document.getElementById('sharedImage');
-        const noImageMsg = document.getElementById('noImageMsg');
 
         // ---------- 輔助函數 ----------
         function percentToPixels(percentX, percentY) {
@@ -542,44 +513,7 @@
             });
         }
 
-        // 更新圖片UI
-        function updateImageUI(base64) {
-            if (base64 && base64.startsWith('data:image')) {
-                sharedImage.src = base64;
-                sharedImage.style.display = 'block';
-                noImageMsg.style.display = 'none';
-            } else {
-                sharedImage.style.display = 'none';
-                noImageMsg.style.display = 'block';
-                sharedImage.src = '';
-            }
-        }
-
-        // 儲存圖片至雲端 (Base64)
-        async function saveImageToCloud(base64) {
-            if (!cloudDataCache) return;
-            cloudDataCache.imageBase64 = base64 || '';
-            await saveToCloud();
-            updateImageUI(base64);
-            syncStatusSpan.textContent = '✅ 圖片已儲存';
-            setTimeout(() => {
-                if (syncStatusSpan.textContent === '✅ 圖片已儲存') syncStatusSpan.textContent = '✅ 已同步雲端';
-            }, 1500);
-        }
-
-        // 清除圖片
-        async function clearImage() {
-            if (!cloudDataCache) return;
-            cloudDataCache.imageBase64 = '';
-            await saveToCloud();
-            updateImageUI('');
-            syncStatusSpan.textContent = '✅ 圖片已清除';
-            setTimeout(() => {
-                if (syncStatusSpan.textContent === '✅ 圖片已清除') syncStatusSpan.textContent = '✅ 已同步雲端';
-            }, 1500);
-        }
-
-        // 新增影片 (改為 async，確保保存完成)
+        // 新增影片
         async function addVideo() {
             if (!cloudDataCache) return;
             const title = videoTitleInput.value.trim();
@@ -593,7 +527,6 @@
                 return;
             }
             
-            // 禁用按鈕，防止重複提交
             addVideoBtn.disabled = true;
             const originalText = addVideoBtn.textContent;
             addVideoBtn.textContent = '儲存中...';
@@ -605,7 +538,7 @@
                     url: url,
                     timestamp: Date.now()
                 });
-                await saveToCloud();  // 等待保存完成
+                await saveToCloud();
                 renderVideoList(cloudDataCache.videos);
                 videoTitleInput.value = '';
                 videoUrlInput.value = '';
@@ -616,7 +549,6 @@
             } catch (err) {
                 console.error('新增影片失敗', err);
                 alert('儲存失敗，請檢查網絡後再試');
-                // 如果儲存失敗，從陣列中移除剛添加的影片
                 if (cloudDataCache.videos && cloudDataCache.videos.length > 0) {
                     cloudDataCache.videos.pop();
                 }
@@ -660,8 +592,6 @@
                 if (!Array.isArray(cloudDataCache.videos)) {
                     cloudDataCache.videos = [];
                 }
-                
-                if (cloudDataCache.imageBase64 === undefined) cloudDataCache.imageBase64 = '';
 
                 currentFormation = cloudDataCache.currentFormation || '321';
                 formationSelect.value = currentFormation;
@@ -677,19 +607,17 @@
                 }
 
                 renderVideoList(cloudDataCache.videos);
-                updateImageUI(cloudDataCache.imageBase64);
                 rebuildUI();
                 syncStatusSpan.textContent = '✅ 已同步雲端';
             } catch (err) {
                 console.error('載入失敗', err);
                 syncStatusSpan.textContent = '⚠️ 無法連線雲端，使用本地模式';
-                // 使用預設百分比
                 const layout = formations[currentFormation].layout;
                 for (let pos of formations[currentFormation].positions) {
                     positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
                 }
                 selectedPlayers = {};
-                cloudDataCache = cloudDataCache || { formations: {}, videos: [], imageBase64: '' };
+                cloudDataCache = cloudDataCache || { formations: {}, videos: [] };
                 if (!cloudDataCache.videos) cloudDataCache.videos = [];
                 renderVideoList(cloudDataCache.videos);
                 rebuildUI();
@@ -699,7 +627,6 @@
         async function saveToCloud() {
             if (isRemoteUpdate || !cloudDataCache) return;
             if (isSaving) {
-                // 如果正在保存，等待一小段時間後重試
                 await new Promise(resolve => setTimeout(resolve, 200));
                 if (isSaving) return;
             }
@@ -712,9 +639,7 @@
                     headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
                     body: JSON.stringify(cloudDataCache)
                 });
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 syncStatusSpan.textContent = '✅ 已儲存';
                 setTimeout(() => {
                     if (syncStatusSpan.textContent === '✅ 已儲存') syncStatusSpan.textContent = '✅ 已同步雲端';
@@ -722,7 +647,7 @@
             } catch (err) {
                 console.error('儲存失敗', err);
                 syncStatusSpan.textContent = '❌ 儲存失敗';
-                throw err;  // 讓呼叫者知道失敗
+                throw err;
             } finally {
                 isSaving = false;
             }
@@ -747,7 +672,6 @@
                 selectedPlayers = {};
                 positionsPercent = {};
             }
-            // 確保百分比存在
             const layout = formations[currentFormation].layout;
             for (let pos of formations[currentFormation].positions) {
                 if (!positionsPercent[pos] || typeof positionsPercent[pos].percentX !== 'number') {
@@ -897,7 +821,6 @@
                     return;
                 }
                 repositionAllPlayers();
-                // 綁定拖曳
                 for (let pos of formation.positions) {
                     const playerDiv = document.getElementById(`${pos}-player`);
                     if (playerDiv && !playerDiv.hasAttribute('data-draggable-bound')) {
@@ -982,43 +905,6 @@
 
         // 影片新增
         addVideoBtn.addEventListener('click', addVideo);
-
-        // 圖片上傳
-        uploadImageBtn.addEventListener('click', async () => {
-            const file = imageUpload.files[0];
-            if (!file) {
-                alert('請先選擇圖片檔案');
-                return;
-            }
-            uploadImageBtn.disabled = true;
-            const originalText = uploadImageBtn.textContent;
-            uploadImageBtn.textContent = '上傳中...';
-            try {
-                const reader = new FileReader();
-                const base64 = await new Promise((resolve, reject) => {
-                    reader.onload = e => resolve(e.target.result);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                });
-                if (base64.length > 2 * 1024 * 1024) {
-                    alert('圖片過大，請選擇小於 1MB 的圖片');
-                    return;
-                }
-                await saveImageToCloud(base64);
-            } catch (err) {
-                alert('讀取圖片失敗');
-            } finally {
-                uploadImageBtn.disabled = false;
-                uploadImageBtn.textContent = originalText;
-            }
-        });
-
-        clearImageBtn.addEventListener('click', async () => {
-            if (confirm('確定要清除共享圖片嗎？')) {
-                await clearImage();
-                imageUpload.value = '';
-            }
-        });
 
         // 載入上次佈局偏好
         const savedLayout = localStorage.getItem('layoutMode');
