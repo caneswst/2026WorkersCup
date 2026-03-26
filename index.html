@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>傲翔2026工人盃戰術板 - 影片名稱+圖片共享版</title>
+    <title>傲翔2026工人盃戰術板 - 影片列表+圖片共享版</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap');
 
@@ -214,7 +214,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
         .input-row input, .input-row button {
             flex: 1;
@@ -233,6 +233,53 @@
             font-weight: bold;
             flex: 0 0 auto;
         }
+        .video-list {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 8px;
+        }
+        .video-item {
+            background: #fff;
+            padding: 8px 12px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            border: 1px solid #ddd;
+        }
+        .video-info {
+            flex: 1;
+            word-break: break-all;
+        }
+        .video-title {
+            font-weight: bold;
+            color: #2e8b57;
+        }
+        .video-url {
+            font-size: 11px;
+            color: #666;
+        }
+        .video-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .video-actions button, .video-actions a {
+            background: #4682b4;
+            border: none;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .video-actions .delete-btn {
+            background: #dc3545;
+        }
         .preview-box {
             background: #fff;
             padding: 8px;
@@ -250,19 +297,6 @@
         }
         .clear-btn {
             background: #aaa !important;
-        }
-        .open-link-btn {
-            background: #ff0000;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 11px;
-            color: white;
-            text-decoration: none;
-            display: inline-block;
-            margin-left: 8px;
-        }
-        .open-link-btn:hover {
-            background: #cc0000;
         }
         /* 手機/電腦強制模式 */
         body.force-mobile .container { flex-direction: column; padding: 2vw; }
@@ -296,7 +330,7 @@
 </head>
 <body>
     <div id="header">
-        <h1>傲翔2026工人盃戰術板 (影片名稱+圖片共享版)</h1>
+        <h1>傲翔2026工人盃戰術板 (影片列表+圖片共享版)</h1>
         <div class="layout-switch">
             <button id="btn-desktop" class="layout-btn">💻 電腦版</button>
             <button id="btn-mobile" class="layout-btn">📱 手機版</button>
@@ -326,18 +360,18 @@
             <h2>請點選位置顯示戰術要求</h2>
             <div id="position-details"></div>
 
-            <!-- 共享區塊：影片（可改名）+ 圖片上傳 -->
+            <!-- 共享區塊：影片列表（可新增、刪除，永不覆蓋） -->
             <div class="share-section">
-                <h3>📺 戰術影片 / 分析 (可命名)</h3>
+                <h3>📺 戰術影片列表 (所有上傳皆保留)</h3>
                 <div class="youtube-group">
                     <div class="input-row">
                         <input type="text" id="videoTitleInput" placeholder="影片名稱 (例如：決賽戰術分析)" value="">
                         <input type="text" id="videoUrlInput" placeholder="YouTube 連結 (https://youtu.be/... 或 https://www.youtube.com/...)" value="">
-                        <button id="saveVideoBtn">💾 儲存</button>
+                        <button id="addVideoBtn">➕ 新增影片</button>
                     </div>
-                    <div id="videoPreview" class="preview-box">
-                        📌 目前共享影片：<span id="currentVideoDisplay">尚未設定</span>
-                        <a id="openVideoLink" href="#" target="_blank" class="open-link-btn" style="display: none;">▶ 播放</a>
+                    <div id="videoListContainer" class="video-list">
+                        <!-- 動態顯示影片列表 -->
+                        <div style="color:#888; text-align:center;">載入中...</div>
                     </div>
                 </div>
 
@@ -422,8 +456,8 @@
 
         // 全域變數
         let currentFormation = '321';
-        let selectedPlayers = {};      // 當前陣型球員選擇
-        let positionsPercent = {};     // 當前陣型百分比座標
+        let selectedPlayers = {};
+        let positionsPercent = {};
         let isRemoteUpdate = false;
         let cloudDataCache = null;
         let resizeTimer = null;
@@ -438,9 +472,8 @@
         // 影片相關
         const videoTitleInput = document.getElementById('videoTitleInput');
         const videoUrlInput = document.getElementById('videoUrlInput');
-        const saveVideoBtn = document.getElementById('saveVideoBtn');
-        const currentVideoDisplay = document.getElementById('currentVideoDisplay');
-        const openVideoLink = document.getElementById('openVideoLink');
+        const addVideoBtn = document.getElementById('addVideoBtn');
+        const videoListContainer = document.getElementById('videoListContainer');
         // 圖片相關
         const imageUpload = document.getElementById('imageUpload');
         const uploadImageBtn = document.getElementById('uploadImageBtn');
@@ -463,21 +496,59 @@
             return { percentX: (leftPx / w) * 100, percentY: (topPx / h) * 100 };
         }
 
-        // 更新影片UI
-        function updateVideoUI(title, url) {
-            if (!url || url.trim() === '') {
-                currentVideoDisplay.textContent = '尚未設定';
-                openVideoLink.style.display = 'none';
-                videoTitleInput.value = '';
-                videoUrlInput.value = '';
-            } else {
-                const displayName = title && title.trim() !== '' ? title : url;
-                currentVideoDisplay.textContent = displayName;
-                openVideoLink.href = url;
-                openVideoLink.style.display = 'inline-block';
-                videoTitleInput.value = title || '';
-                videoUrlInput.value = url;
+        // 渲染影片列表
+        function renderVideoList(videos) {
+            if (!videos || videos.length === 0) {
+                videoListContainer.innerHTML = '<div style="color:#888; text-align:center;">📭 暫無影片，請新增</div>';
+                return;
             }
+            let html = '';
+            videos.forEach((video, index) => {
+                const title = video.title && video.title.trim() !== '' ? video.title : '未命名影片';
+                const url = video.url || '';
+                html += `
+                    <div class="video-item">
+                        <div class="video-info">
+                            <div class="video-title">${escapeHtml(title)}</div>
+                            <div class="video-url">${escapeHtml(url)}</div>
+                        </div>
+                        <div class="video-actions">
+                            <a href="${escapeHtml(url)}" target="_blank" class="play-btn">▶ 播放</a>
+                            <button class="delete-btn" data-index="${index}">🗑️ 刪除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            videoListContainer.innerHTML = html;
+            // 綁定刪除事件
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(btn.getAttribute('data-index'));
+                    if (!isNaN(idx) && cloudDataCache && cloudDataCache.videos) {
+                        cloudDataCache.videos.splice(idx, 1);
+                        saveToCloud().then(() => {
+                            renderVideoList(cloudDataCache.videos);
+                            syncStatusSpan.textContent = '✅ 已刪除影片';
+                            setTimeout(() => {
+                                if (syncStatusSpan.textContent === '✅ 已刪除影片') syncStatusSpan.textContent = '✅ 已同步雲端';
+                            }, 1500);
+                        });
+                    }
+                });
+            });
+        }
+
+        // 簡單防 XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+                return c;
+            });
         }
 
         // 更新圖片UI
@@ -491,18 +562,6 @@
                 noImageMsg.style.display = 'block';
                 sharedImage.src = '';
             }
-        }
-
-        // 儲存影片至雲端
-        async function saveVideoToCloud(title, url) {
-            if (!cloudDataCache) return;
-            cloudDataCache.video = { title: title.trim(), url: url.trim() };
-            await saveToCloud();
-            updateVideoUI(title, url);
-            syncStatusSpan.textContent = '✅ 影片已儲存';
-            setTimeout(() => {
-                if (syncStatusSpan.textContent === '✅ 影片已儲存') syncStatusSpan.textContent = '✅ 已同步雲端';
-            }, 1500);
         }
 
         // 儲存圖片至雲端 (Base64)
@@ -529,6 +588,36 @@
             }, 1500);
         }
 
+        // 新增影片
+        async function addVideo() {
+            const title = videoTitleInput.value.trim();
+            let url = videoUrlInput.value.trim();
+            if (!url) {
+                alert('請輸入 YouTube 連結');
+                return;
+            }
+            // 簡單驗證 URL 格式
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                alert('請輸入有效的 URL (以 http:// 或 https:// 開頭)');
+                return;
+            }
+            if (!cloudDataCache) return;
+            if (!cloudDataCache.videos) cloudDataCache.videos = [];
+            cloudDataCache.videos.push({
+                title: title,
+                url: url,
+                timestamp: Date.now()
+            });
+            await saveToCloud();
+            renderVideoList(cloudDataCache.videos);
+            videoTitleInput.value = '';
+            videoUrlInput.value = '';
+            syncStatusSpan.textContent = '✅ 影片已新增';
+            setTimeout(() => {
+                if (syncStatusSpan.textContent === '✅ 影片已新增') syncStatusSpan.textContent = '✅ 已同步雲端';
+            }, 1500);
+        }
+
         // ---------- 雲端讀寫 ----------
         async function loadFromCloud() {
             syncStatusSpan.textContent = '📡 載入中...';
@@ -542,7 +631,21 @@
                 for (let f of ['321', '312', '231']) {
                     if (!cloudDataCache.formations[f]) cloudDataCache.formations[f] = { players: {}, coords: {} };
                 }
-                if (!cloudDataCache.video) cloudDataCache.video = { title: '', url: '' };
+                // 影片列表：若為舊版單一 video 物件，轉換為陣列
+                if (cloudDataCache.video && !cloudDataCache.videos) {
+                    if (cloudDataCache.video.url) {
+                        cloudDataCache.videos = [{
+                            title: cloudDataCache.video.title || '',
+                            url: cloudDataCache.video.url,
+                            timestamp: Date.now()
+                        }];
+                    } else {
+                        cloudDataCache.videos = [];
+                    }
+                    delete cloudDataCache.video;
+                } else if (!cloudDataCache.videos) {
+                    cloudDataCache.videos = [];
+                }
                 if (cloudDataCache.imageBase64 === undefined) cloudDataCache.imageBase64 = '';
 
                 currentFormation = cloudDataCache.currentFormation || '321';
@@ -558,7 +661,7 @@
                     }
                 }
 
-                updateVideoUI(cloudDataCache.video.title, cloudDataCache.video.url);
+                renderVideoList(cloudDataCache.videos);
                 updateImageUI(cloudDataCache.imageBase64);
                 rebuildUI();
                 syncStatusSpan.textContent = '✅ 已同步雲端';
@@ -571,7 +674,9 @@
                     positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
                 }
                 selectedPlayers = {};
-                cloudDataCache = cloudDataCache || { formations: {}, video: { title: '', url: '' }, imageBase64: '' };
+                cloudDataCache = cloudDataCache || { formations: {}, videos: [], imageBase64: '' };
+                if (!cloudDataCache.videos) cloudDataCache.videos = [];
+                renderVideoList(cloudDataCache.videos);
                 rebuildUI();
             }
         }
@@ -848,16 +953,8 @@
         document.getElementById('btn-mobile').addEventListener('click', () => setLayoutMode('mobile'));
         document.getElementById('btn-desktop').addEventListener('click', () => setLayoutMode('desktop'));
 
-        // 影片儲存
-        saveVideoBtn.addEventListener('click', () => {
-            const title = videoTitleInput.value.trim();
-            const url = videoUrlInput.value.trim();
-            if (!url) {
-                alert('請輸入 YouTube 連結');
-                return;
-            }
-            saveVideoToCloud(title, url);
-        });
+        // 影片新增
+        addVideoBtn.addEventListener('click', addVideo);
 
         // 圖片上傳
         uploadImageBtn.addEventListener('click', () => {
@@ -869,7 +966,6 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const base64 = e.target.result;
-                // 限制 Base64 長度避免過大（約 1MB 對應約 1.3M 字元）
                 if (base64.length > 2 * 1024 * 1024) {
                     alert('圖片過大，請選擇小於 1MB 的圖片');
                     return;
