@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>傲翔2026工人盃戰術板</title>
+    <title>傲翔2026工人盃戰術板｜雙名單切換</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap');
 
@@ -61,6 +61,37 @@
         .layout-btn:hover {
             background: #2e8b57;
             transform: scale(1.02);
+        }
+        /* 名單切換按鈕組 */
+        .roster-switch-group {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 6px 0 12px 0;
+            background: rgba(70,130,180,0.15);
+            padding: 8px;
+            border-radius: 40px;
+        }
+        .roster-btn {
+            background: #e0e7ff;
+            border: none;
+            color: #1e3a5f;
+            padding: 5px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            text-align: center;
+        }
+        .roster-btn.active {
+            background: #2e8b57;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .roster-btn:hover:not(.active) {
+            background: #cbd5e1;
         }
         .container {
             display: flex;
@@ -324,6 +355,11 @@
     <div class="container">
         <div id="left-panel">
             <h2>陣容選擇</h2>
+            <!-- 名單切換區塊 -->
+            <div class="roster-switch-group">
+                <button id="roster-workers" class="roster-btn active">🏆 工人盃名單</button>
+                <button id="roster-reserve" class="roster-btn">📋 預備組名單</button>
+            </div>
             <label>選擇陣型:</label>
             <select id="formation-select">
                 <option value="321">3-2-1</option>
@@ -367,10 +403,14 @@
         const API_KEY = "$2a$10$hpvWSVZz6NSxFP/yY6srDu8yQJTtPj61BZk1o3VOoSgYh7AWGHri2";
         const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-        // 球員名單
-        const players = ['禮', '新', 'Mike', 'Dan', '東', '軍c', 'Xander', 'Alex', '光', 'Frankie', 'Ivan', 'Vasco', '曹', 'Gary'];
+        // ----- 定義兩個球員名單 -----
+        const WORKERS_CUP_PLAYERS = ['禮', '新', 'Mike', 'Dan', '東', '軍c', 'Xander', 'Alex', '光', 'Frankie', 'Ivan', 'Vasco', '曹', 'Gary'];
+        const RESERVE_PLAYERS = [
+            'Xanderrrrr', 'Alex', '阿光', 'Gary', '阿東', '阿禮', 'IVAN朋友', 'Vasco', 
+            '軍c', '阿新', 'Mike', 'Dan', 'Ivan', '曹', '威', 'Nate', '航'
+        ];
 
-        // ---------- 完整陣型定義（包含戰術細節）----------
+        // ---------- 完整陣型定義（包含戰術細節）保持不變 ----------
         const formations = {
             '321': {
                 positions: ['gk', 'lcb', 'cb', 'rcb', 'lm', 'rm', 'st'],
@@ -430,6 +470,10 @@
         let cloudDataCache = null;
         let resizeTimer = null;
         let isSaving = false;
+        
+        // 名單相關
+        let currentRoster = 'workers';     // 'workers' 或 'reserve'
+        let activePlayers = [...WORKERS_CUP_PLAYERS];
 
         // DOM 元素
         const formationSelect = document.getElementById('formation-select');
@@ -443,180 +487,124 @@
         const videoUrlInput = document.getElementById('videoUrlInput');
         const addVideoBtn = document.getElementById('addVideoBtn');
         const videoListContainer = document.getElementById('videoListContainer');
+        // 名單按鈕
+        const rosterWorkersBtn = document.getElementById('roster-workers');
+        const rosterReserveBtn = document.getElementById('roster-reserve');
 
-        // ---------- 輔助函數 ----------
-        function percentToPixels(percentX, percentY) {
-            const w = pitchContainer.clientWidth;
-            const h = pitchContainer.clientHeight;
+        // ---------- 輔助函數 (百分比/像素轉換，影片列表渲染等保持原樣) ----------
+        function percentToPixels(percentX, percentY) { /* 同原有 */ 
+            const w = pitchContainer.clientWidth, h = pitchContainer.clientHeight;
             if (w === 0 || h === 0) return { left: 0, top: 0 };
             return { left: (percentX / 100) * w, top: (percentY / 100) * h };
         }
-
         function pixelsToPercent(leftPx, topPx) {
-            const w = pitchContainer.clientWidth;
-            const h = pitchContainer.clientHeight;
+            const w = pitchContainer.clientWidth, h = pitchContainer.clientHeight;
             if (w === 0 || h === 0) return { percentX: 0, percentY: 0 };
             return { percentX: (leftPx / w) * 100, percentY: (topPx / h) * 100 };
         }
-
-        // 渲染影片列表（按時間戳倒序，最新置頂）
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+        
         function renderVideoList(videos) {
-            if (!videos || videos.length === 0) {
-                videoListContainer.innerHTML = '<div style="color:#888; text-align:center;">📭 暫無影片，請新增</div>';
-                return;
-            }
-
-            // 為每個視頻添加原始索引，以便刪除時能正確刪除原數組中的對象
+            if (!videos || videos.length === 0) { videoListContainer.innerHTML = '<div style="color:#888; text-align:center;">📭 暫無影片，請新增</div>'; return; }
             const indexed = videos.map((v, idx) => ({ ...v, originalIndex: idx }));
-            // 按 timestamp 降序排序，最新在上
             indexed.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-
             let html = '';
             for (const item of indexed) {
-                const title = item.title && item.title.trim() !== '' ? item.title : '未命名影片';
+                const title = item.title?.trim() || '未命名影片';
                 const url = item.url || '';
-                html += `
-                    <div class="video-item">
-                        <div class="video-info">
-                            <div class="video-title">${escapeHtml(title)}</div>
-                            <div class="video-url">${escapeHtml(url)}</div>
-                        </div>
-                        <div class="video-actions">
-                            <a href="${escapeHtml(url)}" target="_blank" class="play-btn">▶ 播放</a>
-                            <button class="delete-btn" data-original-index="${item.originalIndex}">🗑️ 刪除</button>
-                        </div>
-                    </div>
-                `;
+                html += `<div class="video-item"><div class="video-info"><div class="video-title">${escapeHtml(title)}</div><div class="video-url">${escapeHtml(url)}</div></div><div class="video-actions"><a href="${escapeHtml(url)}" target="_blank" class="play-btn">▶ 播放</a><button class="delete-btn" data-original-index="${item.originalIndex}">🗑️ 刪除</button></div></div>`;
             }
             videoListContainer.innerHTML = html;
-
-            // 綁定刪除事件（使用原始索引）
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const originalIdx = parseInt(btn.getAttribute('data-original-index'));
-                    if (!isNaN(originalIdx) && cloudDataCache && cloudDataCache.videos && cloudDataCache.videos[originalIdx]) {
+                    if (!isNaN(originalIdx) && cloudDataCache?.videos?.[originalIdx]) {
                         if (confirm('確定要刪除此影片嗎？')) {
                             cloudDataCache.videos.splice(originalIdx, 1);
                             await saveToCloud();
                             renderVideoList(cloudDataCache.videos);
                             syncStatusSpan.textContent = '✅ 已刪除影片';
-                            setTimeout(() => {
-                                if (syncStatusSpan.textContent === '✅ 已刪除影片') syncStatusSpan.textContent = '✅ 已同步雲端';
-                            }, 1500);
+                            setTimeout(() => { if (syncStatusSpan.textContent === '✅ 已刪除影片') syncStatusSpan.textContent = '✅ 已同步雲端'; }, 1500);
                         }
                     }
                 });
             });
         }
-
-        // 簡單防 XSS
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-
-        // 新增影片（帶時間戳，用於排序）
-        async function addVideo() {
+        async function addVideo() { /* 同原邏輯，只使用 cloudDataCache.videos */ 
             if (!cloudDataCache) return;
             const title = videoTitleInput.value.trim();
             let url = videoUrlInput.value.trim();
-            if (!url) {
-                alert('請輸入 YouTube 連結');
-                return;
-            }
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                alert('請輸入有效的 URL (以 http:// 或 https:// 開頭)');
-                return;
-            }
-            
+            if (!url) { alert('請輸入 YouTube 連結'); return; }
+            if (!url.startsWith('http://') && !url.startsWith('https://')) { alert('請輸入有效的 URL'); return; }
             addVideoBtn.disabled = true;
             const originalText = addVideoBtn.textContent;
             addVideoBtn.textContent = '儲存中...';
-            
             try {
                 if (!cloudDataCache.videos) cloudDataCache.videos = [];
-                cloudDataCache.videos.push({
-                    title: title,
-                    url: url,
-                    timestamp: Date.now()   // 記錄上傳時間，用於排序
-                });
+                cloudDataCache.videos.push({ title, url, timestamp: Date.now() });
                 await saveToCloud();
                 renderVideoList(cloudDataCache.videos);
-                videoTitleInput.value = '';
-                videoUrlInput.value = '';
+                videoTitleInput.value = ''; videoUrlInput.value = '';
                 syncStatusSpan.textContent = '✅ 影片已新增';
-                setTimeout(() => {
-                    if (syncStatusSpan.textContent === '✅ 影片已新增') syncStatusSpan.textContent = '✅ 已同步雲端';
-                }, 1500);
-            } catch (err) {
-                console.error('新增影片失敗', err);
-                alert('儲存失敗，請檢查網絡後再試');
-                if (cloudDataCache.videos && cloudDataCache.videos.length > 0) {
-                    cloudDataCache.videos.pop();
-                }
-            } finally {
-                addVideoBtn.disabled = false;
-                addVideoBtn.textContent = originalText;
-            }
+                setTimeout(() => { if (syncStatusSpan.textContent === '✅ 影片已新增') syncStatusSpan.textContent = '✅ 已同步雲端'; }, 1500);
+            } catch(err) { console.error(err); alert('儲存失敗'); if(cloudDataCache.videos.length) cloudDataCache.videos.pop(); }
+            finally { addVideoBtn.disabled = false; addVideoBtn.textContent = originalText; }
         }
 
-        // ---------- 雲端讀寫 ----------
+        // ----- 雲端讀寫 (支援雙名單) -----
         async function loadFromCloud() {
             syncStatusSpan.textContent = '📡 載入中...';
             try {
                 const response = await fetch(API_URL, { headers: { 'X-Master-Key': API_KEY } });
                 const data = await response.json();
                 cloudDataCache = data.record || {};
-
-                // 確保基礎結構存在
-                if (!cloudDataCache.formations) cloudDataCache.formations = {};
-                for (let f of ['321', '312', '231']) {
-                    if (!cloudDataCache.formations[f]) cloudDataCache.formations[f] = { players: {}, coords: {} };
+                // 初始化結構
+                if (!cloudDataCache.rosters) {
+                    // 舊版數據遷移
+                    const oldFormations = cloudDataCache.formations || {};
+                    const oldCurrent = cloudDataCache.currentFormation || '321';
+                    cloudDataCache.rosters = {
+                        workers: { currentFormation: oldCurrent, formations: oldFormations },
+                        reserve: { currentFormation: '321', formations: { '321': { players: {}, coords: {} }, '312': { players: {}, coords: {} }, '231': { players: {}, coords: {} } } }
+                    };
+                    delete cloudDataCache.formations;
+                    delete cloudDataCache.currentFormation;
                 }
-                
-                // 影片列表：處理舊版單一 video 對象，轉為陣列並補上時間戳
+                if (!cloudDataCache.currentRoster) cloudDataCache.currentRoster = 'workers';
+                if (!cloudDataCache.rosters.workers) cloudDataCache.rosters.workers = { currentFormation: '321', formations: { '321': { players: {}, coords: {} }, '312': { players: {}, coords: {} }, '231': { players: {}, coords: {} } } };
+                if (!cloudDataCache.rosters.reserve) cloudDataCache.rosters.reserve = { currentFormation: '321', formations: { '321': { players: {}, coords: {} }, '312': { players: {}, coords: {} }, '231': { players: {}, coords: {} } } };
+                for (let f of ['321','312','231']) {
+                    if (!cloudDataCache.rosters.workers.formations[f]) cloudDataCache.rosters.workers.formations[f] = { players: {}, coords: {} };
+                    if (!cloudDataCache.rosters.reserve.formations[f]) cloudDataCache.rosters.reserve.formations[f] = { players: {}, coords: {} };
+                }
+                // 影片相容
                 if (cloudDataCache.video && !cloudDataCache.videos) {
-                    if (cloudDataCache.video.url) {
-                        cloudDataCache.videos = [{
-                            title: cloudDataCache.video.title || '',
-                            url: cloudDataCache.video.url,
-                            timestamp: Date.now() - 86400000 // 舊數據給一個較早的時間，讓新數據置頂
-                        }];
-                    } else {
-                        cloudDataCache.videos = [];
-                    }
+                    cloudDataCache.videos = cloudDataCache.video.url ? [{ title: cloudDataCache.video.title || '', url: cloudDataCache.video.url, timestamp: Date.now() - 86400000 }] : [];
                     delete cloudDataCache.video;
-                } else if (!cloudDataCache.videos) {
-                    cloudDataCache.videos = [];
-                }
+                } else if (!cloudDataCache.videos) cloudDataCache.videos = [];
+                if (!Array.isArray(cloudDataCache.videos)) cloudDataCache.videos = [];
+                cloudDataCache.videos.forEach(v => { if (!v.timestamp) v.timestamp = 0; });
                 
-                // 確保 videos 是陣列，並為沒有時間戳的項目補上默認時間（讓它們排在較後）
-                if (Array.isArray(cloudDataCache.videos)) {
-                    for (let v of cloudDataCache.videos) {
-                        if (!v.timestamp) v.timestamp = 0;
-                    }
-                } else {
-                    cloudDataCache.videos = [];
-                }
-
-                currentFormation = cloudDataCache.currentFormation || '321';
+                currentRoster = cloudDataCache.currentRoster;
+                updateRosterButtonUI();
+                // 載入當前名單的數據
+                const rosterData = cloudDataCache.rosters[currentRoster];
+                currentFormation = rosterData.currentFormation || '321';
                 formationSelect.value = currentFormation;
-                selectedPlayers = { ...cloudDataCache.formations[currentFormation].players };
-                positionsPercent = { ...cloudDataCache.formations[currentFormation].coords };
-
-                // 確保每個位置都有百分比
+                selectedPlayers = { ...(rosterData.formations[currentFormation]?.players || {}) };
+                positionsPercent = { ...(rosterData.formations[currentFormation]?.coords || {}) };
                 const layout = formations[currentFormation].layout;
                 for (let pos of formations[currentFormation].positions) {
                     if (!positionsPercent[pos] || typeof positionsPercent[pos].percentX !== 'number') {
                         positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
                     }
                 }
-
+                // 根據 activePlayers 清理無效選擇 (若球員不在名單中)
+                for (let pos in selectedPlayers) {
+                    if (selectedPlayers[pos] && !activePlayers.includes(selectedPlayers[pos])) {
+                        selectedPlayers[pos] = '';
+                    }
+                }
                 renderVideoList(cloudDataCache.videos);
                 rebuildUI();
                 syncStatusSpan.textContent = '✅ 已同步雲端';
@@ -624,61 +612,42 @@
                 console.error('載入失敗', err);
                 syncStatusSpan.textContent = '⚠️ 無法連線雲端，使用本地模式';
                 const layout = formations[currentFormation].layout;
-                for (let pos of formations[currentFormation].positions) {
-                    positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
-                }
+                for (let pos of formations[currentFormation].positions) positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
                 selectedPlayers = {};
-                cloudDataCache = cloudDataCache || { formations: {}, videos: [] };
-                if (!cloudDataCache.videos) cloudDataCache.videos = [];
-                renderVideoList(cloudDataCache.videos);
+                if (!cloudDataCache) cloudDataCache = { rosters: { workers: { formations: {} }, reserve: { formations: {} } }, videos: [] };
+                renderVideoList(cloudDataCache.videos || []);
                 rebuildUI();
             }
         }
 
         async function saveToCloud() {
             if (isRemoteUpdate || !cloudDataCache) return;
-            if (isSaving) {
-                await new Promise(resolve => setTimeout(resolve, 200));
-                if (isSaving) return;
-            }
+            if (isSaving) { await new Promise(r => setTimeout(r, 200)); if (isSaving) return; }
             isSaving = true;
-            cloudDataCache.currentFormation = currentFormation;
-            cloudDataCache.formations[currentFormation] = { players: selectedPlayers, coords: positionsPercent };
+            // 儲存當前名單的數據
+            if (!cloudDataCache.rosters[currentRoster]) cloudDataCache.rosters[currentRoster] = { currentFormation: '321', formations: {} };
+            cloudDataCache.rosters[currentRoster].currentFormation = currentFormation;
+            if (!cloudDataCache.rosters[currentRoster].formations) cloudDataCache.rosters[currentRoster].formations = {};
+            cloudDataCache.rosters[currentRoster].formations[currentFormation] = { players: selectedPlayers, coords: positionsPercent };
+            cloudDataCache.currentRoster = currentRoster;
             try {
-                const response = await fetch(API_URL, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
-                    body: JSON.stringify(cloudDataCache)
-                });
+                const response = await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify(cloudDataCache) });
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 syncStatusSpan.textContent = '✅ 已儲存';
-                setTimeout(() => {
-                    if (syncStatusSpan.textContent === '✅ 已儲存') syncStatusSpan.textContent = '✅ 已同步雲端';
-                }, 1500);
-            } catch (err) {
-                console.error('儲存失敗', err);
-                syncStatusSpan.textContent = '❌ 儲存失敗';
-                throw err;
-            } finally {
-                isSaving = false;
-            }
+                setTimeout(() => { if (syncStatusSpan.textContent === '✅ 已儲存') syncStatusSpan.textContent = '✅ 已同步雲端'; }, 1500);
+            } catch(err) { console.error('儲存失敗', err); syncStatusSpan.textContent = '❌ 儲存失敗'; throw err; }
+            finally { isSaving = false; }
         }
 
-        function updatePositionToCloud(pos, percentX, percentY) {
-            positionsPercent[pos] = { percentX, percentY };
-            saveToCloud();
-        }
-
-        function updatePlayerToCloud(pos, playerName) {
-            selectedPlayers[pos] = playerName;
-            saveToCloud();
-        }
+        function updatePositionToCloud(pos, percentX, percentY) { positionsPercent[pos] = { percentX, percentY }; saveToCloud(); }
+        function updatePlayerToCloud(pos, playerName) { selectedPlayers[pos] = playerName; saveToCloud(); }
 
         function updateFormationToCloud(formationKey) {
             currentFormation = formationKey;
-            if (cloudDataCache && cloudDataCache.formations[formationKey]) {
-                selectedPlayers = { ...cloudDataCache.formations[formationKey].players };
-                positionsPercent = { ...cloudDataCache.formations[formationKey].coords };
+            const rosterData = cloudDataCache.rosters[currentRoster];
+            if (rosterData && rosterData.formations[formationKey]) {
+                selectedPlayers = { ...rosterData.formations[formationKey].players };
+                positionsPercent = { ...rosterData.formations[formationKey].coords };
             } else {
                 selectedPlayers = {};
                 positionsPercent = {};
@@ -693,91 +662,98 @@
             rebuildUI();
         }
 
-        // ---------- 拖曳功能 ----------
-        function makeDraggable(element, posKey) {
-            let startX = 0, startY = 0;
-            let startLeft = 0, startTop = 0;
-            let isDragging = false;
-            let dragStarted = false;
-            let hasMoved = false;
-            const container = pitchContainer;
+        // 切換名單核心函數
+        async function switchRoster(rosterType) {
+            if (rosterType === currentRoster) return;
+            // 儲存當前名單狀態
+            if (cloudDataCache) {
+                if (!cloudDataCache.rosters[currentRoster]) cloudDataCache.rosters[currentRoster] = { currentFormation: '321', formations: {} };
+                cloudDataCache.rosters[currentRoster].currentFormation = currentFormation;
+                if (!cloudDataCache.rosters[currentRoster].formations) cloudDataCache.rosters[currentRoster].formations = {};
+                cloudDataCache.rosters[currentRoster].formations[currentFormation] = { players: selectedPlayers, coords: positionsPercent };
+                await saveToCloud();
+            }
+            currentRoster = rosterType;
+            activePlayers = (currentRoster === 'workers') ? [...WORKERS_CUP_PLAYERS] : [...RESERVE_PLAYERS];
+            // 載入新名單數據
+            const rosterData = cloudDataCache.rosters[currentRoster];
+            currentFormation = rosterData.currentFormation || '321';
+            formationSelect.value = currentFormation;
+            selectedPlayers = { ...(rosterData.formations[currentFormation]?.players || {}) };
+            positionsPercent = { ...(rosterData.formations[currentFormation]?.coords || {}) };
+            const layout = formations[currentFormation].layout;
+            for (let pos of formations[currentFormation].positions) {
+                if (!positionsPercent[pos] || typeof positionsPercent[pos].percentX !== 'number') {
+                    positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
+                }
+            }
+            // 清理無效球員
+            for (let pos in selectedPlayers) {
+                if (selectedPlayers[pos] && !activePlayers.includes(selectedPlayers[pos])) {
+                    selectedPlayers[pos] = '';
+                }
+            }
+            updateRosterButtonUI();
+            rebuildUI();
+            saveToCloud(); // 儲存載入後可能清理的狀態
+        }
 
+        function updateRosterButtonUI() {
+            if (currentRoster === 'workers') {
+                rosterWorkersBtn.classList.add('active');
+                rosterReserveBtn.classList.remove('active');
+            } else {
+                rosterReserveBtn.classList.add('active');
+                rosterWorkersBtn.classList.remove('active');
+            }
+        }
+
+        // ---------- 拖曳 / UI 重建 (使用 activePlayers) ----------
+        function makeDraggable(element, posKey) { /* 完全沿用原有邏輯，但引用 updatePositionToCloud 正確 */
+            let startX = 0, startY = 0, startLeft = 0, startTop = 0, isDragging = false, dragStarted = false, hasMoved = false;
+            const container = pitchContainer;
             function onPointerDown(e) {
-                e.preventDefault();
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
                 const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
-                startX = clientX;
-                startY = clientY;
-                const rect = element.getBoundingClientRect();
-                const containerRect = container.getBoundingClientRect();
-                startLeft = rect.left - containerRect.left;
-                startTop = rect.top - containerRect.top;
-                element.style.left = startLeft + 'px';
-                element.style.top = startTop + 'px';
-                isDragging = true;
-                dragStarted = false;
-                hasMoved = false;
-                window.addEventListener('mousemove', onPointerMove);
-                window.addEventListener('mouseup', onPointerUp);
-                window.addEventListener('touchmove', onPointerMove, { passive: false });
-                window.addEventListener('touchend', onPointerUp);
-                window.addEventListener('touchcancel', onPointerUp);
+                startX = clientX; startY = clientY;
+                const rect = element.getBoundingClientRect(), containerRect = container.getBoundingClientRect();
+                startLeft = rect.left - containerRect.left; startTop = rect.top - containerRect.top;
+                element.style.left = startLeft + 'px'; element.style.top = startTop + 'px';
+                isDragging = true; dragStarted = false; hasMoved = false;
+                window.addEventListener('mousemove', onPointerMove); window.addEventListener('mouseup', onPointerUp);
+                window.addEventListener('touchmove', onPointerMove, { passive: false }); window.addEventListener('touchend', onPointerUp); window.addEventListener('touchcancel', onPointerUp);
                 element.classList.add('dragging');
             }
-
             function onPointerMove(e) {
-                if (!isDragging) return;
-                e.preventDefault();
+                if (!isDragging) return; e.preventDefault();
                 const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
                 const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
-                const dx = clientX - startX;
-                const dy = clientY - startY;
-                if (!dragStarted && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
-                    dragStarted = true;
-                    hasMoved = true;
-                }
+                const dx = clientX - startX, dy = clientY - startY;
+                if (!dragStarted && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) { dragStarted = true; hasMoved = true; }
                 if (dragStarted) {
-                    let newLeft = startLeft + dx;
-                    let newTop = startTop + dy;
-                    const containerRect = container.getBoundingClientRect();
-                    const elemRect = element.getBoundingClientRect();
-                    const maxLeft = containerRect.width - elemRect.width;
-                    const maxTop = containerRect.height - elemRect.height;
-                    newLeft = Math.min(Math.max(0, newLeft), maxLeft);
-                    newTop = Math.min(Math.max(0, newTop), maxTop);
-                    element.style.left = newLeft + 'px';
-                    element.style.top = newTop + 'px';
+                    let newLeft = startLeft + dx, newTop = startTop + dy;
+                    const containerRect = container.getBoundingClientRect(), elemRect = element.getBoundingClientRect();
+                    newLeft = Math.min(Math.max(0, newLeft), containerRect.width - elemRect.width);
+                    newTop = Math.min(Math.max(0, newTop), containerRect.height - elemRect.height);
+                    element.style.left = newLeft + 'px'; element.style.top = newTop + 'px';
                 }
             }
-
             function onPointerUp() {
-                if (!isDragging) return;
-                isDragging = false;
-                element.classList.remove('dragging');
-                window.removeEventListener('mousemove', onPointerMove);
-                window.removeEventListener('mouseup', onPointerUp);
-                window.removeEventListener('touchmove', onPointerMove);
-                window.removeEventListener('touchend', onPointerUp);
-                window.removeEventListener('touchcancel', onPointerUp);
+                if (!isDragging) return; isDragging = false; element.classList.remove('dragging');
+                window.removeEventListener('mousemove', onPointerMove); window.removeEventListener('mouseup', onPointerUp);
+                window.removeEventListener('touchmove', onPointerMove); window.removeEventListener('touchend', onPointerUp); window.removeEventListener('touchcancel', onPointerUp);
                 if (hasMoved) {
-                    const newLeft = parseFloat(element.style.left);
-                    const newTop = parseFloat(element.style.top);
+                    const newLeft = parseFloat(element.style.left), newTop = parseFloat(element.style.top);
                     if (!isNaN(newLeft) && !isNaN(newTop)) {
                         const { percentX, percentY } = pixelsToPercent(newLeft, newTop);
                         updatePositionToCloud(posKey, percentX, percentY);
                     }
-                } else {
-                    showPositionDetails(posKey);
-                }
-                hasMoved = false;
-                dragStarted = false;
+                } else { showPositionDetails(posKey); }
+                hasMoved = false; dragStarted = false;
             }
-
-            element.addEventListener('mousedown', onPointerDown);
-            element.addEventListener('touchstart', onPointerDown, { passive: false });
+            element.addEventListener('mousedown', onPointerDown); element.addEventListener('touchstart', onPointerDown, { passive: false });
         }
-
         function repositionAllPlayers() {
             const formation = formations[currentFormation];
             if (!formation) return;
@@ -787,81 +763,45 @@
                 const percent = positionsPercent[pos];
                 if (!percent || typeof percent.percentX !== 'number') continue;
                 const { left, top } = percentToPixels(percent.percentX, percent.percentY);
-                playerDiv.style.left = left + 'px';
-                playerDiv.style.top = top + 'px';
+                playerDiv.style.left = left + 'px'; playerDiv.style.top = top + 'px';
             }
         }
-
         function rebuildUI() {
             const formation = formations[currentFormation];
             if (!formation) return;
-
-            // 左側下拉選單
             positionsContainer.innerHTML = '';
             for (let pos of formation.positions) {
                 const label = document.createElement('label');
                 label.textContent = formation.details[pos].name + ':';
                 const select = document.createElement('select');
                 select.id = pos;
-                select.innerHTML = '<option value="">選擇球員</option>' + players.map(p => `<option value="${p}">${p}</option>`).join('');
+                select.innerHTML = '<option value="">選擇球員</option>' + activePlayers.map(p => `<option value="${p}">${p}</option>`).join('');
                 if (selectedPlayers[pos]) select.value = selectedPlayers[pos];
-                select.onchange = (e) => {
-                    const newVal = e.target.value;
-                    selectedPlayers[pos] = newVal;
-                    updatePlayerToCloud(pos, newVal);
-                    updatePitchAndSubs();
-                };
-                positionsContainer.appendChild(label);
-                positionsContainer.appendChild(select);
+                select.onchange = (e) => { selectedPlayers[pos] = e.target.value; updatePlayerToCloud(pos, e.target.value); updatePitchAndSubs(); };
+                positionsContainer.appendChild(label); positionsContainer.appendChild(select);
             }
-
-            // 重建球場圖示
             pitchContainer.innerHTML = '<div id="pitch-error" style="display: none;">無法加載足球場圖片</div>';
             for (let pos of formation.positions) {
-                const playerDiv = document.createElement('div');
-                playerDiv.className = 'player';
-                playerDiv.id = `${pos}-player`;
-                playerDiv.textContent = selectedPlayers[pos] || pos.toUpperCase();
-                pitchContainer.appendChild(playerDiv);
+                const playerDiv = document.createElement('div'); playerDiv.className = 'player'; playerDiv.id = `${pos}-player`;
+                playerDiv.textContent = selectedPlayers[pos] || pos.toUpperCase(); pitchContainer.appendChild(playerDiv);
             }
-
-            // 等待 DOM 渲染完成後計算位置
             const applyPositions = () => {
-                if (pitchContainer.clientWidth === 0 || pitchContainer.clientHeight === 0) {
-                    requestAnimationFrame(applyPositions);
-                    return;
-                }
+                if (pitchContainer.clientWidth === 0 || pitchContainer.clientHeight === 0) { requestAnimationFrame(applyPositions); return; }
                 repositionAllPlayers();
                 for (let pos of formation.positions) {
                     const playerDiv = document.getElementById(`${pos}-player`);
-                    if (playerDiv && !playerDiv.hasAttribute('data-draggable-bound')) {
-                        makeDraggable(playerDiv, pos);
-                        playerDiv.setAttribute('data-draggable-bound', 'true');
-                    }
+                    if (playerDiv && !playerDiv.hasAttribute('data-draggable-bound')) { makeDraggable(playerDiv, pos); playerDiv.setAttribute('data-draggable-bound', 'true'); }
                 }
             };
             requestAnimationFrame(applyPositions);
-
-            // 右側戰術面板
             positionDetailsDiv.innerHTML = '';
             for (let pos of formation.positions) {
                 const info = formation.details[pos];
-                positionDetailsDiv.innerHTML += `
-                    <div id="${pos}-info" class="position-info">
-                        <h3>${info.name}</h3>
-                        <p><strong>戰術要求:</strong> ${info.tactics}</p>
-                        <p><strong>技術要求:</strong> ${info.tech}</p>
-                        <p><strong>進攻時位置要求:</strong> ${info.off}</p>
-                        <p><strong>防守時位置要求:</strong> ${info.def}</p>
-                        <p><strong>代表球員:</strong> ${info.example}</p>
-                    </div>
-                `;
+                positionDetailsDiv.innerHTML += `<div id="${pos}-info" class="position-info"><h3>${info.name}</h3><p><strong>戰術要求:</strong> ${info.tactics}</p><p><strong>技術要求:</strong> ${info.tech}</p><p><strong>進攻時位置要求:</strong> ${info.off}</p><p><strong>防守時位置要求:</strong> ${info.def}</p><p><strong>代表球員:</strong> ${info.example}</p></div>`;
             }
-
             if (formation.positions.length) showPositionDetails(formation.positions[0]);
             updatePitchAndSubs();
         }
-
         function updatePitchAndSubs() {
             const formation = formations[currentFormation];
             const selectedSet = new Set();
@@ -871,17 +811,12 @@
                 if (playerDiv) playerDiv.textContent = playerName || pos.toUpperCase();
                 if (playerName) selectedSet.add(playerName);
             }
-            const subs = players.filter(p => !selectedSet.has(p));
+            const subs = activePlayers.filter(p => !selectedSet.has(p));
             subsListDiv.innerHTML = subs.map(p => `<p>${p}</p>`).join('');
         }
+        function showPositionDetails(pos) { document.querySelectorAll('.position-info').forEach(el => el.style.display = 'none'); const target = document.getElementById(`${pos}-info`); if (target) target.style.display = 'block'; }
 
-        function showPositionDetails(pos) {
-            document.querySelectorAll('.position-info').forEach(el => el.style.display = 'none');
-            const target = document.getElementById(`${pos}-info`);
-            if (target) target.style.display = 'block';
-        }
-
-        // ---------- 手機/電腦版切換 ----------
+        // 手機/電腦版切換 (同原)
         let currentLayout = 'auto';
         function setLayoutMode(mode) {
             currentLayout = mode;
@@ -894,42 +829,21 @@
             document.getElementById('btn-desktop').classList.toggle('active', mode === 'desktop');
             requestAnimationFrame(() => repositionAllPlayers());
         }
-
-        function initResizeListener() {
-            window.addEventListener('resize', () => {
-                if (resizeTimer) clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(() => {
-                    repositionAllPlayers();
-                }, 100);
-            });
-        }
+        function initResizeListener() { window.addEventListener('resize', () => { if (resizeTimer) clearTimeout(resizeTimer); resizeTimer = setTimeout(() => repositionAllPlayers(), 100); }); }
 
         // 事件綁定
-        formationSelect.onchange = () => {
-            const newForm = formationSelect.value;
-            if (newForm === currentFormation) return;
-            updateFormationToCloud(newForm);
-        };
+        formationSelect.onchange = () => { if (formationSelect.value !== currentFormation) updateFormationToCloud(formationSelect.value); };
         document.getElementById('btn-auto').addEventListener('click', () => setLayoutMode('auto'));
         document.getElementById('btn-mobile').addEventListener('click', () => setLayoutMode('mobile'));
         document.getElementById('btn-desktop').addEventListener('click', () => setLayoutMode('desktop'));
-
-        // 影片新增
         addVideoBtn.addEventListener('click', addVideo);
+        rosterWorkersBtn.addEventListener('click', () => switchRoster('workers'));
+        rosterReserveBtn.addEventListener('click', () => switchRoster('reserve'));
 
-        // 載入上次佈局偏好
         const savedLayout = localStorage.getItem('layoutMode');
-        if (savedLayout && ['auto', 'mobile', 'desktop'].includes(savedLayout)) setLayoutMode(savedLayout);
-        else setLayoutMode('auto');
-
-        // 圖片錯誤處理
-        const imgTest = new Image();
-        imgTest.src = 'https://raw.githubusercontent.com/caneswst/Falcon352/refs/heads/main/football_pitch.jpg';
-        imgTest.onerror = () => {
-            document.getElementById('pitch-error').style.display = 'block';
-        };
-
-        // 啟動
+        if (savedLayout && ['auto','mobile','desktop'].includes(savedLayout)) setLayoutMode(savedLayout); else setLayoutMode('auto');
+        const imgTest = new Image(); imgTest.src = 'https://raw.githubusercontent.com/caneswst/Falcon352/refs/heads/main/football_pitch.jpg';
+        imgTest.onerror = () => document.getElementById('pitch-error').style.display = 'block';
         initResizeListener();
         loadFromCloud();
     </script>
