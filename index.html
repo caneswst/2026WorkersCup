@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>傲翔2026年戰術板｜雙名單切換</title>
+    <title>傲翔2026戰術板｜丙組11人場</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap');
 
@@ -25,7 +25,7 @@
         #header {
             text-align: center;
             padding: 2vh 0;
-            background: linear-gradient(90deg, #4682b4, #2e8b57);
+            background: linear-gradient(90deg, #1e5a3a, #2c7a47);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             width: 100%;
         }
@@ -44,7 +44,7 @@
             margin: 10px 0;
         }
         .layout-btn {
-            background: #4682b4;
+            background: #2c7a47;
             border: none;
             color: white;
             padding: 6px 16px;
@@ -55,20 +55,19 @@
             font-weight: bold;
         }
         .layout-btn.active {
-            background: #2e8b57;
-            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+            background: #f4c542;
+            color: #2c3e2f;
         }
         .layout-btn:hover {
-            background: #2e8b57;
+            background: #f4c542;
             transform: scale(1.02);
         }
-        /* 名單切換按鈕組 */
         .roster-switch-group {
             display: flex;
             justify-content: center;
             gap: 12px;
             margin: 6px 0 12px 0;
-            background: rgba(70,130,180,0.15);
+            background: rgba(44,122,71,0.15);
             padding: 8px;
             border-radius: 40px;
         }
@@ -104,47 +103,37 @@
             align-items: stretch;
         }
         #pitch-container {
-            flex: 0 0 25%;
+            flex: 0 0 28%;
             position: relative;
             background: url('https://raw.githubusercontent.com/caneswst/Falcon352/refs/heads/main/football_pitch.jpg') no-repeat center;
             background-size: cover;
             min-height: 200px;
             aspect-ratio: 3 / 5;
-            border: 2px solid #4682b4;
+            border: 2px solid #f4c542;
             border-radius: 8px;
-            box-shadow: 0 0 8px rgba(70, 130, 180, 0.2);
+            box-shadow: 0 0 8px rgba(0,0,0,0.2);
             background-color: #2e8b57;
             overflow: hidden;
         }
-        #pitch-error {
-            display: none;
-            color: red;
-            text-align: center;
-            padding: 20px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.7);
-            border-radius: 8px;
-            z-index: 20;
-        }
+        /* 球員圖示大小減少60% (原尺寸約40%) */
         .player {
             position: absolute;
-            width: clamp(37.5px, 5.25vw, 60px);
-            height: clamp(37.5px, 5.25vw, 60px);
-            background: #4682b4;
+            width: clamp(15px, 2.1vw, 24px);
+            height: clamp(15px, 2.1vw, 24px);
+            background: #d4451e;
             border-radius: 50%;
             color: #fff;
             text-align: center;
-            line-height: clamp(37.5px, 5.25vw, 60px);
+            line-height: clamp(15px, 2.1vw, 24px);
             cursor: grab;
-            font-size: clamp(12px, 2.25vw, 21px);
+            font-size: clamp(7px, 1vw, 10px);
+            font-weight: bold;
             transition: box-shadow 0.2s, transform 0.1s;
             transform: translate(-50%, -50%);
             will-change: left, top;
             z-index: 10;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,240,0.7);
         }
         .player:active {
             cursor: grabbing;
@@ -158,7 +147,7 @@
         #left-panel, #subs-container, #right-panel {
             flex: 1 1 18%;
             padding: 1vw;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             border-radius: 8px;
             box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
             overflow-y: auto;
@@ -171,11 +160,11 @@
             border-radius: 5px;
             background: #fff;
             color: #333;
-            border: 1px solid #4682b4;
+            border: 1px solid #2c7a47;
             font-size: clamp(10px, 1.5vw, 12px);
         }
         h2, h3 {
-            color: #4682b4;
+            color: #1e5a3a;
             font-family: 'Bebas Neue', cursive;
             margin: clamp(4px, 1vw, 5px) 0;
             font-size: clamp(16px, 2vw, 20px);
@@ -183,7 +172,7 @@
         .position-info {
             display: none;
             line-height: 1.5;
-            background: rgba(70, 130, 180, 0.1);
+            background: rgba(44,122,71,0.1);
             padding: clamp(6px, 1vw, 8px);
             border-radius: 5px;
             margin-bottom: clamp(6px, 1vw, 8px);
@@ -193,14 +182,14 @@
             font-size: clamp(10px, 1.5vw, 12px);
         }
         .position-info strong {
-            color: #2e8b57;
+            color: #d4451e;
         }
         #formation-select {
             width: 100%;
             padding: clamp(6px, 1vw, 8px);
             margin-bottom: clamp(8px, 1.5vw, 10px);
             font-size: clamp(12px, 1.8vw, 14px);
-            background: #4682b4;
+            background: #1e5a3a;
             color: #fff;
             border: none;
             border-radius: 5px;
@@ -208,7 +197,8 @@
             transition: background 0.3s;
         }
         #formation-select:hover {
-            background: #2e8b57;
+            background: #f4c542;
+            color: #1e3a2f;
         }
         .sync-status {
             font-size: 12px;
@@ -218,7 +208,6 @@
             border-radius: 4px;
             text-align: center;
         }
-        /* 共享區塊樣式 */
         .share-section {
             margin-top: 20px;
             padding: 12px 10px;
@@ -232,12 +221,6 @@
             margin-top: 0;
             margin-bottom: 8px;
             font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .youtube-group {
-            margin-bottom: 8px;
         }
         .input-row {
             display: flex;
@@ -262,10 +245,6 @@
             font-weight: bold;
             flex: 0 0 auto;
         }
-        .input-row button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
         .video-list {
             max-height: 300px;
             overflow-y: auto;
@@ -283,22 +262,6 @@
             flex-wrap: wrap;
             border: 1px solid #ddd;
         }
-        .video-info {
-            flex: 1;
-            word-break: break-all;
-        }
-        .video-title {
-            font-weight: bold;
-            color: #2e8b57;
-        }
-        .video-url {
-            font-size: 11px;
-            color: #666;
-        }
-        .video-actions {
-            display: flex;
-            gap: 6px;
-        }
         .video-actions button, .video-actions a {
             background: #4682b4;
             border: none;
@@ -308,44 +271,33 @@
             font-size: 11px;
             cursor: pointer;
             text-decoration: none;
-            display: inline-block;
         }
         .video-actions .delete-btn {
             background: #dc3545;
         }
-        /* 手機/電腦強制模式 */
+        /* 響應式佈局 */
         body.force-mobile .container { flex-direction: column; padding: 2vw; }
         body.force-mobile #pitch-container { width: 100%; min-height: 50vh; max-height: 400px; flex: none; }
         body.force-mobile #left-panel, body.force-mobile #subs-container, body.force-mobile #right-panel { width: 100%; min-height: 30vh; margin-top: 2vw; flex: none; }
-        body.force-mobile #left-panel { order: 2; }
-        body.force-mobile #subs-container { order: 3; }
-        body.force-mobile #right-panel { order: 1; }
         body.force-mobile .player { width: 9vw; height: 9vw; line-height: 9vw; font-size: 3vw; }
 
         body.force-desktop .container { flex-direction: row; flex-wrap: nowrap; }
-        body.force-desktop #pitch-container { flex: 0 0 25%; width: auto; max-height: none; }
-        body.force-desktop #left-panel, body.force-desktop #subs-container, body.force-desktop #right-panel { flex: 1 1 18%; order: unset; margin-top: 0; }
-        body.force-desktop .player { width: clamp(37.5px, 5.25vw, 60px); height: clamp(37.5px, 5.25vw, 60px); line-height: clamp(37.5px, 5.25vw, 60px); font-size: clamp(12px, 2.25vw, 21px); }
+        body.force-desktop #pitch-container { flex: 0 0 28%; }
+        body.force-desktop .player { width: clamp(15px, 2.1vw, 24px); height: clamp(15px, 2.1vw, 24px); line-height: clamp(15px, 2.1vw, 24px); font-size: clamp(7px, 1vw, 10px); }
 
         @media (max-width: 900px) {
             body:not(.force-desktop):not(.force-mobile) .container { flex-wrap: wrap; }
             body:not(.force-desktop):not(.force-mobile) #pitch-container { flex: 0 0 70%; }
-            body:not(.force-desktop):not(.force-mobile) #left-panel, body:not(.force-desktop):not(.force-mobile) #subs-container, body:not(.force-desktop):not(.force-mobile) #right-panel { flex: 1 1 15%; }
         }
         @media (max-width: 600px) {
-            body:not(.force-desktop):not(.force-mobile) .container { flex-direction: column; padding: 2vw; }
-            body:not(.force-desktop):not(.force-mobile) #pitch-container { width: 100%; min-height: 50vh; max-height: 400px; }
-            body:not(.force-desktop):not(.force-mobile) #left-panel, body:not(.force-desktop):not(.force-mobile) #subs-container, body:not(.force-desktop):not(.force-mobile) #right-panel { width: 100%; min-height: 30vh; margin-top: 2vw; }
-            body:not(.force-desktop):not(.force-mobile) #left-panel { order: 2; }
-            body:not(.force-desktop):not(.force-mobile) #subs-container { order: 3; }
-            body:not(.force-desktop):not(.force-mobile) #right-panel { order: 1; }
+            body:not(.force-desktop):not(.force-mobile) .container { flex-direction: column; }
             body:not(.force-desktop):not(.force-mobile) .player { width: 9vw; height: 9vw; line-height: 9vw; font-size: 3vw; }
         }
     </style>
 </head>
 <body>
     <div id="header">
-        <h1>傲翔2026年戰術板｜雙名單切換</h1>
+        <h1>傲翔2026 丙組聯賽｜11人場戰術板</h1>
         <div class="layout-switch">
             <button id="btn-desktop" class="layout-btn">💻 電腦版</button>
             <button id="btn-mobile" class="layout-btn">📱 手機版</button>
@@ -355,16 +307,15 @@
     <div class="container">
         <div id="left-panel">
             <h2>陣容選擇</h2>
-            <!-- 名單切換區塊 -->
             <div class="roster-switch-group">
-                <button id="roster-workers" class="roster-btn active">🏆 工人盃名單</button>
-                <button id="roster-reserve" class="roster-btn">📋 預備組名單</button>
+                <button id="roster-workers" class="roster-btn">🏆 工人盃名單 (7人場保留)</button>
+                <button id="roster-reserve" class="roster-btn active">⚽ 2026年丙組名單 (26人)</button>
             </div>
-            <label>選擇陣型:</label>
+            <label>選擇陣型 (11人制):</label>
             <select id="formation-select">
-                <option value="321">3-2-1</option>
-                <option value="312">3-1-2</option>
-                <option value="231">2-3-1</option>
+                <option value="442">4-4-2 (平行)</option>
+                <option value="4231">4-2-3-1 (雙防中)</option>
+                <option value="451">4-5-1 (穩守)</option>
             </select>
             <div id="positions-container"></div>
             <div class="sync-status" id="sync-status">🔄 同步中...</div>
@@ -377,474 +328,294 @@
             <div id="pitch-error" style="display: none;">無法加載足球場圖片</div>
         </div>
         <div id="right-panel">
-            <h2>請點選位置顯示戰術要求</h2>
+            <h2>點選球員圖示查看戰術要求</h2>
             <div id="position-details"></div>
-
-            <!-- 共享區塊：影片列表（最新上傳置頂） -->
             <div class="share-section">
-                <h3>📺 影片、相片列表 (最新上傳顯示在最頂部)</h3>
-                <div class="youtube-group">
-                    <div class="input-row">
-                        <input type="text" id="videoTitleInput" placeholder="影片名稱 (例如：決賽戰術分析)" value="">
-                        <input type="text" id="videoUrlInput" placeholder="YouTube 連結 (https://youtu.be/... 或 https://www.youtube.com/...)" value="">
-                        <button id="addVideoBtn">➕ 新增影片</button>
-                    </div>
-                    <div id="videoListContainer" class="video-list">
-                        <div style="color:#888; text-align:center;">載入中...</div>
-                    </div>
+                <h3>📺 影片、相片列表 (最新置頂)</h3>
+                <div class="input-row">
+                    <input type="text" id="videoTitleInput" placeholder="影片名稱" value="">
+                    <input type="text" id="videoUrlInput" placeholder="YouTube 連結" value="">
+                    <button id="addVideoBtn">➕ 新增影片</button>
                 </div>
+                <div id="videoListContainer" class="video-list">載入中...</div>
             </div>
         </div>
     </div>
 
     <script>
-        // ==================== JSONBin 設定 ====================
-        const BIN_ID = "69c0ae30c3097a1dd54ddd0b";
-        const API_KEY = "$2a$10$hpvWSVZz6NSxFP/yY6srDu8yQJTtPj61BZk1o3VOoSgYh7AWGHri2";
-        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-
-        // ----- 定義兩個球員名單 -----
-        const WORKERS_CUP_PLAYERS = ['禮', '新', 'Mike', 'Dan', '東', '軍c', 'Xander', 'Alex', '光', 'Frankie', 'Ivan', 'Vasco', '曹', 'Gary'];
-        const RESERVE_PLAYERS = [
-            'Xanderrrrr', 'Alex', '阿光', 'Gary', '阿東', '阿禮', 'Nowson', 'Vasco', 
-            '軍c', '阿新', 'Mike', 'Dan', 'Ivan', '曹', '威', 'Nate', '航'
+        // ---------- 丙組 26人完整名單 (預備組更新) ----------
+        const CUP_2026_PLAYERS = [
+            'Xanderrrrr', 'Alex', '阿光', 'Gary', '阿東', '阿禮', 'Nowson', 'Vasco',
+            '軍c', '阿新', 'Mike', 'Dan', 'Ivan', '曹', '威', 'Nate', '俊', '航',
+            '杰', 'Kenneth', 'Kenneth 朋友', '銳', '23.a', '24.b', '25.c', '26.d'
         ];
+        // 保留工人盃原有名單 (兼容舊7人)
+        const WORKERS_CUP_PLAYERS = ['禮', '新', 'Mike', 'Dan', '東', '軍c', 'Xander', 'Alex', '光', 'Frankie', 'Ivan', 'Vasco', '曹', 'Gary'];
 
-        // ---------- 完整陣型定義（包含戰術細節）保持不變 ----------
+        // ---------- 11人場 三陣型完整定義 (442,4231,451) ----------
         const formations = {
-            '321': {
-                positions: ['gk', 'lcb', 'cb', 'rcb', 'lm', 'rm', 'st'],
+            '442': {
+                positions: ['gk', 'lb', 'lcb', 'rcb', 'rb', 'lm', 'lcm', 'rcm', 'rm', 'ls', 'rs'],
                 layout: {
-                    'gk': { left: 50, top: 90 }, 'lcb': { left: 10, top: 50 }, 'cb': { left: 50, top: 65 },
-                    'rcb': { left: 90, top: 50 }, 'lm': { left: 35, top: 35 }, 'rm': { left: 65, top: 35 }, 'st': { left: 50, top: 15 }
+                    'gk': { left: 50, top: 88 }, 'lb': { left: 18, top: 70 }, 'lcb': { left: 38, top: 72 }, 'rcb': { left: 62, top: 72 }, 'rb': { left: 82, top: 70 },
+                    'lm': { left: 20, top: 48 }, 'lcm': { left: 40, top: 52 }, 'rcm': { left: 60, top: 52 }, 'rm': { left: 80, top: 48 },
+                    'ls': { left: 38, top: 22 }, 'rs': { left: 62, top: 22 }
                 },
-                details: {
-                    'gk': { name: '門將 (GK)', tactics: '七人場的防守核心，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門線，果斷出擊攔截單刀或高空球。', example: 'Manuel Neuer - 出擊防守和傳球能力強的現代門將。' },
-                    'lcb': { name: '左中後衛 (LCB)', tactics: '防守左側，協助中後衛穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援左中場快速推進。', def: '封堵左路突破，清空禁區威脅，快速回防。', example: 'Giorgio Chiellini - 防守硬朗且頭球出色。' },
-                    'cb': { name: '中後衛 (CB)', tactics: '防守核心，負責統籌後防並清空禁區，適時長傳發動進攻。', tech: '頭球 92, 搶斷 95, 傳球 85, 力量 90', off: '長傳至前場，支援邊路快速反擊。', def: '盯防對方前鋒，清空高空球，保持防線穩定。', example: 'Virgil van Dijk - 防守全面且領導力強。' },
-                    'rcb': { name: '右中後衛 (RCB)', tactics: '防守右側，與中後衛協作穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援右中場快速推進。', def: '封堵右路突破，清空禁區威脅，快速回防。', example: 'Sergio Ramos - 防守兇悍且經驗豐富。' },
-                    'lm': { name: '左中場 (LM)', tactics: '負責左路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方右後衛，快速回防協助左中後衛。', example: 'Son Heung-min - 速度快且技術全面。' },
-                    'rm': { name: '右中場 (RM)', tactics: '負責右路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方左後衛，快速回防協助右中後衛。', example: 'Bukayo Saka - 速度快且技術出色。' },
-                    'st': { name: '前鋒 (ST)', tactics: '進攻終結者，積極壓迫對方後衛，尋找空位得分機會。', tech: '射門 92, 速度 90, 位置感 92, 搶點 90', off: '位於禁區前沿，接應邊路傳球或直接射門。', def: '高位壓迫對方中後衛，爭搶第一落點。', example: 'Harry Kane - 射門效率高且全面。' }
-                }
+                details: {}
             },
-            '312': {
-                positions: ['gk', 'lcb', 'cb', 'rcb', 'cm', 'lst', 'rst'],
+            '4231': {
+                positions: ['gk', 'lb', 'lcb', 'rcb', 'rb', 'ldm', 'rdm', 'lam', 'cam', 'ram', 'st'],
                 layout: {
-                    'gk': { left: 50, top: 90 }, 'lcb': { left: 30, top: 70 }, 'cb': { left: 50, top: 70 },
-                    'rcb': { left: 70, top: 70 }, 'cm': { left: 50, top: 50 }, 'lst': { left: 40, top: 15 }, 'rst': { left: 60, top: 15 }
+                    'gk': { left: 50, top: 88 }, 'lb': { left: 18, top: 70 }, 'lcb': { left: 38, top: 72 }, 'rcb': { left: 62, top: 72 }, 'rb': { left: 82, top: 70 },
+                    'ldm': { left: 35, top: 58 }, 'rdm': { left: 65, top: 58 }, 'lam': { left: 28, top: 40 }, 'cam': { left: 50, top: 38 }, 'ram': { left: 72, top: 40 },
+                    'st': { left: 50, top: 20 }
                 },
-                details: {
-                    'gk': { name: '門將 (GK)', tactics: '七人場的防守支柱，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門，快速出擊攔截單刀球。', example: 'Manuel Neuer - 出擊型門將典範。' },
-                    'lcb': { name: '左中後衛 (LCB)', tactics: '防守左側，協助中後衛形成緊密防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援左前鋒快速推進。', def: '封堵左路進攻，清空禁區，快速回防。', example: 'Giorgio Chiellini - 防守硬朗。' },
-                    'cb': { name: '中後衛 (CB)', tactics: '防守核心，負責清空禁區並指揮後防，適時長傳發動進攻。', tech: '頭球 92, 搶斷 95, 傳球 85, 力量 90', off: '長傳至前場，支援邊路快速反擊。', def: '盯防前鋒，清空高空球，保持防線穩定。', example: 'Virgil van Dijk - 全面中後衛。' },
-                    'rcb': { name: '右中後衛 (RCB)', tactics: '防守右側，與中後衛協作穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援右前鋒快速推進。', def: '封堵右路進攻，清空禁區，快速回防。', example: 'Sergio Ramos - 防守兇悍。' },
-                    'cm': { name: '中場 (CM)', tactics: '進攻與防守的樞紐，負責中場控制並積極前插支援進攻。', tech: '傳球 88, 搶斷 85, 視野 90, 速度 88', off: '前插至對方禁區邊緣，分球至雙前鋒或直接射門。', def: '高位壓迫對方中場，快速回防保護後衛。', example: 'Toni Kroos - 傳球精準且穩健。' },
-                    'lst': { name: '左前鋒 (LST)', tactics: '負責左路進攻終結，快速前插並壓迫對方防線，與右前鋒配合。', tech: '射門 90, 速度 92, 盤帶 90, 位置感 90', off: '快速前插至對方禁區，內切射門或傳中給右前鋒。', def: '高位壓迫對方右後衛，爭搶第二落點。', example: 'Son Heung-min - 速度快且射門精準。' },
-                    'rst': { name: '右前鋒 (RST)', tactics: '負責右路進攻終結，快速前插並壓迫對方防線，與左前鋒配合。', tech: '射門 90, 速度 92, 盤帶 90, 位置感 90', off: '快速前插至對方禁區，內切射門或傳中給左前鋒。', def: '高位壓迫對方左後衛，爭搶第二落點。', example: 'Kylian Mbappé - 速度驚人且全面。' }
-                }
+                details: {}
             },
-            '231': {
-                positions: ['gk', 'lcb', 'rcb', 'lm', 'cm', 'rm', 'st'],
+            '451': {
+                positions: ['gk', 'lb', 'lcb', 'rcb', 'rb', 'ldm', 'lcm', 'cm', 'rcm', 'rdm', 'st'],
                 layout: {
-                    'gk': { left: 50, top: 90 }, 'lcb': { left: 35, top: 70 }, 'rcb': { left: 65, top: 70 },
-                    'lm': { left: 25, top: 35 }, 'cm': { left: 50, top: 40 }, 'rm': { left: 75, top: 35 }, 'st': { left: 50, top: 15 }
+                    'gk': { left: 50, top: 88 }, 'lb': { left: 18, top: 70 }, 'lcb': { left: 38, top: 72 }, 'rcb': { left: 62, top: 72 }, 'rb': { left: 82, top: 70 },
+                    'ldm': { left: 28, top: 62 }, 'lcm': { left: 43, top: 55 }, 'cm': { left: 50, top: 50 }, 'rcm': { left: 57, top: 55 }, 'rdm': { left: 72, top: 62 },
+                    'st': { left: 50, top: 25 }
                 },
-                details: {
-                    'gk': { name: '門將 (GK)', tactics: '七人場的防守最後屏障，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門線，攔截單刀球。', example: 'Manuel Neuer - 出擊型門將。' },
-                    'lcb': { name: '左後衛 (LCB)', tactics: '防守左側，協助右後衛穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援左中場快速推進。', def: '封堵左路進攻，退守補位，快速回防。', example: 'Andrew Robertson - 防守穩健。' },
-                    'rcb': { name: '右後衛 (RCB)', tactics: '防守右側，與左後衛協作穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援右中場快速推進。', def: '封堵右路進攻，退守補位，快速回防。', example: 'Kyle Walker - 速度快且穩固。' },
-                    'lm': { name: '左中場 (LM)', tactics: '負責左路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方右後衛，快速回防協助左後衛。', example: 'Son Heung-min - 技術全面。' },
-                    'cm': { name: '中場 (CM)', tactics: '中場核心，負責組織進攻並積極前插，支援邊路和前鋒。', tech: '傳球 88, 搶斷 85, 視野 90, 速度 88', off: '前插至對方禁區邊緣，分球至邊路或直接射門。', def: '高位壓迫對方中場，快速回防保護後衛。', example: 'Luka Modrić - 技術全面且積極。' },
-                    'rm': { name: '右中場 (RM)', tactics: '負責右路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方左後衛，快速回防協助右後衛。', example: 'Bukayo Saka - 速度快且出色。' },
-                    'st': { name: '前鋒 (ST)', tactics: '進攻終結者，積極壓迫對方後衛，尋找空位得分機會。', tech: '射門 92, 速度 90, 位置感 92, 搶點 90', off: '位於禁區前沿，接應邊路傳球或直接射門。', def: '高位壓迫對方中後衛，爭搶第一落點。', example: 'Harry Kane - 射門效率高。' }
-                }
+                details: {}
             }
         };
 
-        // 全域變數
-        let currentFormation = '321';
+        // 為三個陣型填充詳細戰術 (11人場專業說明)
+        const fillDetails = () => {
+            const commonTactic = {
+                'gk': { name: '門將 (GK)', tactics: '防守最後屏障，指揮防線，擅長出擊接高球及快速分邊反擊。', tech: '撲救反應 90, 高空控制 88, 分球能力 85', off: '手拋球或大腳給兩翼發動快攻。', def: '果斷出擊封單刀，指揮人牆佈防。', example: 'Alisson Becker' },
+                'lb': { name: '左閘 (LB)', tactics: '防守左路，適時疊瓦助攻，提供傳中支援。', tech: '攔截 85, 傳中 82, 速度 88', off: '沿邊線前插，底線傳中或短傳滲透。', def: '一對一緊貼翼鋒，內收協防中堅。', example: 'Theo Hernández' },
+                'rb': { name: '右閘 (RB)', tactics: '防守右路，協助組織，疊瓦式助攻。', tech: '搶斷 86, 傳中 83, 體力 90', off: '支援右中場，拉開寬度。', def: '卡位封內切路線，快速回防。', example: 'Trent Alexander-Arnold' },
+                'lcb': { name: '左中堅 (LCB)', tactics: '左側防守核心，包抄解圍，預判長傳。', tech: '頭球 92, 強度 90, 位置感 88', off: '後場長傳組織，角球爭頂。', def: '盯防對方前鋒，補位左閘空檔。', example: 'Virgil van Dijk' },
+                'rcb': { name: '右中堅 (RCB)', tactics: '右側防守柱石，指揮越位線，強悍攔截。', tech: '鏟斷 91, 集中力 89, 速度 85', off: '短傳銜接，偶爾後上遠射。', def: '封鎖對手突破路線，清空禁區。', example: 'Rúben Dias' },
+                'lm': { name: '左翼 (LM)', tactics: '左路突擊手，利用速度突破傳中或內切射門。', tech: '盤帶 90, 傳中 88, 射門 82', off: '緊貼邊線，一對一過人後傳中。', def: '協防左閘，高位壓迫。', example: 'Vinícius Jr.' },
+                'rm': { name: '右翼 (RM)', tactics: '右路攻擊核心，內切創造機會。', tech: '速度 92, 傳球 85, 遠射 84', off: '與右閘配合，切入禁區射門。', def: '回追對方邊衛，干擾出球。', example: 'Bukayo Saka' },
+                'lcm': { name: '左中場 (LCM)', tactics: '全能中場，串聯攻守，後上插入禁區。', tech: '視野 86, 傳球 88, 體力 92', off: '向兩翼分球，遠射威脅。', def: '壓迫對方組織核心，保護中堅身前。', example: 'Jude Bellingham' },
+                'rcm': { name: '右中場 (RCM)', tactics: '中場發動機，大範圍轉移，節奏控制。', tech: '長傳 89, 控球 87, 搶斷 82', off: '後上支援前鋒，直塞滲透。', def: '攔截傳球路線，橫向補位。', example: 'Frenkie de Jong' },
+                'ls': { name: '左前鋒 (LS)', tactics: '左側前鋒，靈活走位，接應傳中射門。', tech: '射術 91, 無球跑動 90, 短距離爆發 88', off: '拉邊接應，與右前鋒交叉走位。', def: '前場逼搶對方中堅。', example: 'Erling Haaland' },
+                'rs': { name: '右前鋒 (RS)', tactics: '禁區殺手，搶點終結。', tech: '把握力 93, 頭球 88, 護球 86', off: '禁區內埋伏，背身做球。', def: '干擾門將開球。', example: 'Harry Kane' },
+                'ldm': { name: '左防中 (LDM)', tactics: '防守屏障，橫向掃蕩，簡潔分邊。', tech: '攔截 90, 位置感 88, 傳球 80', off: '奪回球權後快速交給進攻中場。', def: '覆蓋左側肋部，保護中堅。', example: 'Casemiro' },
+                'rdm': { name: '右防中 (RDM)', tactics: '中場絞肉機，破壞對方攻勢。', tech: '強度 89, 搶斷 92, 體力 95', off: '過渡球，偶爾遠射。', def: '限制對方10號位，補位邊後衛。', example: 'Rodri' },
+                'lam': { name: '左攻中 (LAM)', tactics: '左邊攻擊中場，內切射門或直塞。', tech: '盤帶 89, 創造力 87, 遠射 85', off: '在左半空間活動，與左閘重疊。', def: '高位逼搶，干擾對方出球。', example: 'Kevin De Bruyne' },
+                'cam': { name: '進攻中場 (CAM)', tactics: '核心發動機，致命傳球與後上射門。', tech: '視野 94, 傳球 92, 射門 86', off: '前場自由人，直塞撕破防線。', def: '封鎖中路傳球路線。', example: 'Martin Ødegaard' },
+                'ram': { name: '右攻中 (RAM)', tactics: '右路攻擊中場，內切組織。', tech: '傳中 84, 速度 86, 盤帶 88', off: '與右閘配合，切入中路遠射。', def: '壓制對方左後衛。', example: 'Phil Foden' },
+                'st': { name: '單箭頭 (ST)', tactics: '支點中鋒，背身護球，分球後插入禁區。', tech: '射術 94, 身體對抗 89, 頭球 90', off: '接應兩翼傳中，搶點破門。', def: '前場第一道防線，壓迫中堅。', example: 'Robert Lewandowski' },
+                'cm': { name: '正中場 (CM)', tactics: '中場節拍器，平衡攻守。', tech: '傳控 90, 大局觀 88, 遠射 83', off: '過渡銜接，轉移進攻方向。', def: '保持防守站位，切斷傳球。', example: 'Toni Kroos' }
+            };
+            for (let form in formations) {
+                for (let pos of formations[form].positions) {
+                    if (commonTactic[pos]) formations[form].details[pos] = commonTactic[pos];
+                    else formations[form].details[pos] = { name: pos.toUpperCase(), tactics: '依照戰術紀律執行', tech: '全能', off: '依教練部署', def: '團隊合作', example: '團隊球員' };
+                }
+            }
+        };
+        fillDetails();
+
+        // ---------- 智能位置分配 (根據球員名稱關鍵字) ----------
+        function getPlayerRole(name) {
+            if (name.includes('Nowson') || name.includes('Vasco') || name === 'Nowson' || name === 'Vasco') return 'gk';
+            if (name.includes('Gary') || name.includes('曹') || name.includes('威') || name.includes('Nate') || name.includes('航') || name.includes('俊')) return 'defender';
+            if (name.includes('Kenneth') || name.includes('銳') || name.includes('Mike') || name.includes('Dan') || name.includes('Ivan') || name.includes('軍c') || name.includes('阿新') || name.includes('阿光') || name.includes('Xander') || name.includes('Alex') || name.includes('阿東') || name.includes('阿禮')) return 'midfielder';
+            if (name.includes('杰')) return 'forward';
+            return 'midfielder';
+        }
+        function autoAssignPlayers(playersList, formationKey) {
+            const form = formations[formationKey];
+            if (!form) return {};
+            const posOrder = [...form.positions];
+            const assign = {};
+            const available = [...playersList];
+            // 1. 優先分配門將
+            const gkCandidates = available.filter(p => getPlayerRole(p) === 'gk');
+            if (gkCandidates.length > 0) assign.gk = gkCandidates[0];
+            // 2. 分配後衛 (lb,lcb,rcb,rb)
+            const defCandidates = available.filter(p => getPlayerRole(p) === 'defender' && !assign.gk);
+            const defPos = ['lb', 'lcb', 'rcb', 'rb'].filter(p => form.positions.includes(p));
+            for (let i = 0; i < defPos.length && i < defCandidates.length; i++) assign[defPos[i]] = defCandidates[i];
+            // 3. 中場
+            const midCandidates = available.filter(p => (getPlayerRole(p) === 'midfielder') && !Object.values(assign).includes(p));
+            const midPos = form.positions.filter(p => !assign[p] && !['gk','lb','lcb','rcb','rb','ls','rs','st'].includes(p));
+            for (let i = 0; i < midPos.length && i < midCandidates.length; i++) assign[midPos[i]] = midCandidates[i];
+            // 4. 前鋒
+            const fwdCandidates = available.filter(p => (getPlayerRole(p) === 'forward') && !Object.values(assign).includes(p));
+            const fwdPos = form.positions.filter(p => p === 'st' || p === 'ls' || p === 'rs');
+            for (let i = 0; i < fwdPos.length && i < fwdCandidates.length; i++) assign[fwdPos[i]] = fwdCandidates[i];
+            // 5. 剩餘位置隨便補
+            const remaining = available.filter(p => !Object.values(assign).includes(p));
+            let idx = 0;
+            for (let pos of form.positions) if (!assign[pos] && idx < remaining.length) assign[pos] = remaining[idx++];
+            return assign;
+        }
+
+        // ---------- 全域變數 ----------
+        let currentFormation = '442';
         let selectedPlayers = {};
         let positionsPercent = {};
-        let isRemoteUpdate = false;
         let cloudDataCache = null;
-        let resizeTimer = null;
+        let currentRoster = 'reserve';  // 預設丙組2026
+        let activePlayers = [...CUP_2026_PLAYERS];
         let isSaving = false;
-        
-        // 名單相關
-        let currentRoster = 'workers';     // 'workers' 或 'reserve'
-        let activePlayers = [...WORKERS_CUP_PLAYERS];
+        let resizeTimer = null;
 
-        // DOM 元素
         const formationSelect = document.getElementById('formation-select');
         const pitchContainer = document.getElementById('pitch-container');
         const positionsContainer = document.getElementById('positions-container');
         const subsListDiv = document.getElementById('subs-list');
         const positionDetailsDiv = document.getElementById('position-details');
         const syncStatusSpan = document.getElementById('sync-status');
-        // 影片相關
-        const videoTitleInput = document.getElementById('videoTitleInput');
-        const videoUrlInput = document.getElementById('videoUrlInput');
-        const addVideoBtn = document.getElementById('addVideoBtn');
-        const videoListContainer = document.getElementById('videoListContainer');
-        // 名單按鈕
         const rosterWorkersBtn = document.getElementById('roster-workers');
         const rosterReserveBtn = document.getElementById('roster-reserve');
+        const addVideoBtn = document.getElementById('addVideoBtn');
+        const videoListContainer = document.getElementById('videoListContainer');
+        const videoTitleInput = document.getElementById('videoTitleInput');
+        const videoUrlInput = document.getElementById('videoUrlInput');
 
-        // ---------- 輔助函數 (百分比/像素轉換，影片列表渲染等保持原樣) ----------
-        function percentToPixels(percentX, percentY) { /* 同原有 */ 
-            const w = pitchContainer.clientWidth, h = pitchContainer.clientHeight;
-            if (w === 0 || h === 0) return { left: 0, top: 0 };
-            return { left: (percentX / 100) * w, top: (percentY / 100) * h };
-        }
-        function pixelsToPercent(leftPx, topPx) {
-            const w = pitchContainer.clientWidth, h = pitchContainer.clientHeight;
-            if (w === 0 || h === 0) return { percentX: 0, percentY: 0 };
-            return { percentX: (leftPx / w) * 100, percentY: (topPx / h) * 100 };
-        }
-        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
-        
-        function renderVideoList(videos) {
-            if (!videos || videos.length === 0) { videoListContainer.innerHTML = '<div style="color:#888; text-align:center;">📭 暫無影片，請新增</div>'; return; }
-            const indexed = videos.map((v, idx) => ({ ...v, originalIndex: idx }));
-            indexed.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-            let html = '';
-            for (const item of indexed) {
-                const title = item.title?.trim() || '未命名影片';
-                const url = item.url || '';
-                html += `<div class="video-item"><div class="video-info"><div class="video-title">${escapeHtml(title)}</div><div class="video-url">${escapeHtml(url)}</div></div><div class="video-actions"><a href="${escapeHtml(url)}" target="_blank" class="play-btn">▶ 播放</a><button class="delete-btn" data-original-index="${item.originalIndex}">🗑️ 刪除</button></div></div>`;
-            }
-            videoListContainer.innerHTML = html;
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    const originalIdx = parseInt(btn.getAttribute('data-original-index'));
-                    if (!isNaN(originalIdx) && cloudDataCache?.videos?.[originalIdx]) {
-                        if (confirm('確定要刪除此影片嗎？')) {
-                            cloudDataCache.videos.splice(originalIdx, 1);
-                            await saveToCloud();
-                            renderVideoList(cloudDataCache.videos);
-                            syncStatusSpan.textContent = '✅ 已刪除影片';
-                            setTimeout(() => { if (syncStatusSpan.textContent === '✅ 已刪除影片') syncStatusSpan.textContent = '✅ 已同步雲端'; }, 1500);
-                        }
-                    }
-                });
-            });
-        }
-        async function addVideo() { /* 同原邏輯，只使用 cloudDataCache.videos */ 
-            if (!cloudDataCache) return;
-            const title = videoTitleInput.value.trim();
-            let url = videoUrlInput.value.trim();
-            if (!url) { alert('請輸入 YouTube 連結'); return; }
-            if (!url.startsWith('http://') && !url.startsWith('https://')) { alert('請輸入有效的 URL'); return; }
-            addVideoBtn.disabled = true;
-            const originalText = addVideoBtn.textContent;
-            addVideoBtn.textContent = '儲存中...';
+        // ---------- 雲端 API ----------
+        const BIN_ID = "69c0ae30c3097a1dd54ddd0b";
+        const API_KEY = "$2a$10$hpvWSVZz6NSxFP/yY6srDu8yQJTtPj61BZk1o3VOoSgYh7AWGHri2";
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+        // 輔助函數
+        function percentToPixels(percentX, percentY) { const w = pitchContainer.clientWidth, h = pitchContainer.clientHeight; if (w===0 || h===0) return {left:0,top:0}; return { left: (percentX/100)*w, top: (percentY/100)*h }; }
+        function pixelsToPercent(leftPx, topPx) { const w = pitchContainer.clientWidth, h = pitchContainer.clientHeight; if (w===0||h===0) return {percentX:0,percentY:0}; return { percentX: (leftPx/w)*100, percentY: (topPx/h)*100 }; }
+        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+        async function saveToCloud() {
+            if (!cloudDataCache || isSaving) return;
+            isSaving = true;
+            if (!cloudDataCache.rosters) cloudDataCache.rosters = { workers: {}, reserve: {} };
+            if (!cloudDataCache.rosters[currentRoster]) cloudDataCache.rosters[currentRoster] = { currentFormation: '442', formations: {} };
+            cloudDataCache.rosters[currentRoster].currentFormation = currentFormation;
+            cloudDataCache.rosters[currentRoster].formations[currentFormation] = { players: selectedPlayers, coords: positionsPercent };
+            cloudDataCache.currentRoster = currentRoster;
             try {
-                if (!cloudDataCache.videos) cloudDataCache.videos = [];
-                cloudDataCache.videos.push({ title, url, timestamp: Date.now() });
-                await saveToCloud();
-                renderVideoList(cloudDataCache.videos);
-                videoTitleInput.value = ''; videoUrlInput.value = '';
-                syncStatusSpan.textContent = '✅ 影片已新增';
-                setTimeout(() => { if (syncStatusSpan.textContent === '✅ 影片已新增') syncStatusSpan.textContent = '✅ 已同步雲端'; }, 1500);
-            } catch(err) { console.error(err); alert('儲存失敗'); if(cloudDataCache.videos.length) cloudDataCache.videos.pop(); }
-            finally { addVideoBtn.disabled = false; addVideoBtn.textContent = originalText; }
+                await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type':'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify(cloudDataCache) });
+                syncStatusSpan.textContent = '✅ 已儲存';
+                setTimeout(() => { if(syncStatusSpan.textContent === '✅ 已儲存') syncStatusSpan.textContent = '✅ 已同步雲端'; }, 1500);
+            } catch(err) { console.error(err); syncStatusSpan.textContent = '❌ 儲存失敗'; }
+            finally { isSaving = false; }
         }
 
-        // ----- 雲端讀寫 (支援雙名單) -----
+        function updatePositionToCloud(pos, percentX, percentY) { positionsPercent[pos] = { percentX, percentY }; saveToCloud(); }
+        function updatePlayerToCloud(pos, playerName) { selectedPlayers[pos] = playerName; saveToCloud(); rebuildUI(); }
+
+        // 載入雲端並初始化
         async function loadFromCloud() {
             syncStatusSpan.textContent = '📡 載入中...';
             try {
                 const response = await fetch(API_URL, { headers: { 'X-Master-Key': API_KEY } });
                 const data = await response.json();
                 cloudDataCache = data.record || {};
-                // 初始化結構
-                if (!cloudDataCache.rosters) {
-                    // 舊版數據遷移
-                    const oldFormations = cloudDataCache.formations || {};
-                    const oldCurrent = cloudDataCache.currentFormation || '321';
-                    cloudDataCache.rosters = {
-                        workers: { currentFormation: oldCurrent, formations: oldFormations },
-                        reserve: { currentFormation: '321', formations: { '321': { players: {}, coords: {} }, '312': { players: {}, coords: {} }, '231': { players: {}, coords: {} } } }
-                    };
-                    delete cloudDataCache.formations;
-                    delete cloudDataCache.currentFormation;
+                if (!cloudDataCache.rosters) cloudDataCache.rosters = { workers: {}, reserve: {} };
+                if (!cloudDataCache.videos) cloudDataCache.videos = [];
+                cloudDataCache.videos = cloudDataCache.videos.filter(v => v && v.url);
+                if (cloudDataCache.currentRoster) currentRoster = cloudDataCache.currentRoster;
+                for (let r of ['workers','reserve']) {
+                    if (!cloudDataCache.rosters[r]) cloudDataCache.rosters[r] = { currentFormation: '442', formations: {} };
+                    for (let f of ['442','4231','451']) if (!cloudDataCache.rosters[r].formations[f]) cloudDataCache.rosters[r].formations[f] = { players: {}, coords: {} };
                 }
-                if (!cloudDataCache.currentRoster) cloudDataCache.currentRoster = 'workers';
-                if (!cloudDataCache.rosters.workers) cloudDataCache.rosters.workers = { currentFormation: '321', formations: { '321': { players: {}, coords: {} }, '312': { players: {}, coords: {} }, '231': { players: {}, coords: {} } } };
-                if (!cloudDataCache.rosters.reserve) cloudDataCache.rosters.reserve = { currentFormation: '321', formations: { '321': { players: {}, coords: {} }, '312': { players: {}, coords: {} }, '231': { players: {}, coords: {} } } };
-                for (let f of ['321','312','231']) {
-                    if (!cloudDataCache.rosters.workers.formations[f]) cloudDataCache.rosters.workers.formations[f] = { players: {}, coords: {} };
-                    if (!cloudDataCache.rosters.reserve.formations[f]) cloudDataCache.rosters.reserve.formations[f] = { players: {}, coords: {} };
-                }
-                // 影片相容
-                if (cloudDataCache.video && !cloudDataCache.videos) {
-                    cloudDataCache.videos = cloudDataCache.video.url ? [{ title: cloudDataCache.video.title || '', url: cloudDataCache.video.url, timestamp: Date.now() - 86400000 }] : [];
-                    delete cloudDataCache.video;
-                } else if (!cloudDataCache.videos) cloudDataCache.videos = [];
-                if (!Array.isArray(cloudDataCache.videos)) cloudDataCache.videos = [];
-                cloudDataCache.videos.forEach(v => { if (!v.timestamp) v.timestamp = 0; });
-                
-                currentRoster = cloudDataCache.currentRoster;
-                updateRosterButtonUI();
-                // 載入當前名單的數據
                 const rosterData = cloudDataCache.rosters[currentRoster];
-                currentFormation = rosterData.currentFormation || '321';
+                currentFormation = rosterData.currentFormation || '442';
                 formationSelect.value = currentFormation;
-                selectedPlayers = { ...(rosterData.formations[currentFormation]?.players || {}) };
-                positionsPercent = { ...(rosterData.formations[currentFormation]?.coords || {}) };
+                const formData = rosterData.formations[currentFormation];
+                selectedPlayers = formData?.players ? {...formData.players} : {};
+                positionsPercent = formData?.coords ? {...formData.coords} : {};
+                // 若缺少坐標則填入預設layout
                 const layout = formations[currentFormation].layout;
                 for (let pos of formations[currentFormation].positions) {
-                    if (!positionsPercent[pos] || typeof positionsPercent[pos].percentX !== 'number') {
+                    if (!positionsPercent[pos] || typeof positionsPercent[pos].percentX !== 'number')
                         positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
-                    }
                 }
-                // 根據 activePlayers 清理無效選擇 (若球員不在名單中)
+                // 自動修正無效球員 (依照當前名單)
                 for (let pos in selectedPlayers) {
-                    if (selectedPlayers[pos] && !activePlayers.includes(selectedPlayers[pos])) {
-                        selectedPlayers[pos] = '';
-                    }
+                    if (selectedPlayers[pos] && !activePlayers.includes(selectedPlayers[pos])) selectedPlayers[pos] = '';
+                }
+                // 若selectedPlayers空缺太多，智能填充
+                let needAuto = false;
+                for (let pos of formations[currentFormation].positions) if (!selectedPlayers[pos]) { needAuto = true; break; }
+                if (needAuto) {
+                    const auto = autoAssignPlayers(activePlayers, currentFormation);
+                    for (let pos of formations[currentFormation].positions) if (!selectedPlayers[pos] && auto[pos]) selectedPlayers[pos] = auto[pos];
                 }
                 renderVideoList(cloudDataCache.videos);
                 rebuildUI();
                 syncStatusSpan.textContent = '✅ 已同步雲端';
-            } catch (err) {
-                console.error('載入失敗', err);
-                syncStatusSpan.textContent = '⚠️ 無法連線雲端，使用本地模式';
-                const layout = formations[currentFormation].layout;
-                for (let pos of formations[currentFormation].positions) positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
-                selectedPlayers = {};
-                if (!cloudDataCache) cloudDataCache = { rosters: { workers: { formations: {} }, reserve: { formations: {} } }, videos: [] };
-                renderVideoList(cloudDataCache.videos || []);
-                rebuildUI();
-            }
+            } catch(err) { console.warn(err); syncStatusSpan.textContent = '⚠️ 離線模式'; rebuildUI(); }
         }
 
-        async function saveToCloud() {
-            if (isRemoteUpdate || !cloudDataCache) return;
-            if (isSaving) { await new Promise(r => setTimeout(r, 200)); if (isSaving) return; }
-            isSaving = true;
-            // 儲存當前名單的數據
-            if (!cloudDataCache.rosters[currentRoster]) cloudDataCache.rosters[currentRoster] = { currentFormation: '321', formations: {} };
-            cloudDataCache.rosters[currentRoster].currentFormation = currentFormation;
-            if (!cloudDataCache.rosters[currentRoster].formations) cloudDataCache.rosters[currentRoster].formations = {};
-            cloudDataCache.rosters[currentRoster].formations[currentFormation] = { players: selectedPlayers, coords: positionsPercent };
-            cloudDataCache.currentRoster = currentRoster;
-            try {
-                const response = await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify(cloudDataCache) });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                syncStatusSpan.textContent = '✅ 已儲存';
-                setTimeout(() => { if (syncStatusSpan.textContent === '✅ 已儲存') syncStatusSpan.textContent = '✅ 已同步雲端'; }, 1500);
-            } catch(err) { console.error('儲存失敗', err); syncStatusSpan.textContent = '❌ 儲存失敗'; throw err; }
-            finally { isSaving = false; }
+        function renderVideoList(videos) {
+            if (!videos || videos.length===0) { videoListContainer.innerHTML = '<div>📭 暫無影片</div>'; return; }
+            let sorted = [...videos].sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+            videoListContainer.innerHTML = sorted.map((v,idx)=>`<div class="video-item"><div><b>${escapeHtml(v.title||'影片')}</b><br><span style="font-size:10px;">${escapeHtml(v.url)}</span></div><div class="video-actions"><a href="${escapeHtml(v.url)}" target="_blank">▶播放</a><button class="delete-video" data-idx="${videos.indexOf(v)}">刪除</button></div></div>`).join('');
+            document.querySelectorAll('.delete-video').forEach(btn=>btn.addEventListener('click',async(e)=>{
+                let idx = parseInt(btn.dataset.idx); if(!isNaN(idx) && cloudDataCache.videos[idx]) { cloudDataCache.videos.splice(idx,1); await saveToCloud(); renderVideoList(cloudDataCache.videos); }
+            }));
         }
+        async function addVideo() { if(!cloudDataCache) return; let title=videoTitleInput.value.trim(), url=videoUrlInput.value.trim(); if(!url) return alert('輸入連結'); cloudDataCache.videos.push({title,url,timestamp:Date.now()}); await saveToCloud(); renderVideoList(cloudDataCache.videos); videoTitleInput.value=''; videoUrlInput.value=''; }
 
-        function updatePositionToCloud(pos, percentX, percentY) { positionsPercent[pos] = { percentX, percentY }; saveToCloud(); }
-        function updatePlayerToCloud(pos, playerName) { selectedPlayers[pos] = playerName; saveToCloud(); }
-
-        function updateFormationToCloud(formationKey) {
-            currentFormation = formationKey;
-            const rosterData = cloudDataCache.rosters[currentRoster];
-            if (rosterData && rosterData.formations[formationKey]) {
-                selectedPlayers = { ...rosterData.formations[formationKey].players };
-                positionsPercent = { ...rosterData.formations[formationKey].coords };
-            } else {
-                selectedPlayers = {};
-                positionsPercent = {};
-            }
-            const layout = formations[currentFormation].layout;
-            for (let pos of formations[currentFormation].positions) {
-                if (!positionsPercent[pos] || typeof positionsPercent[pos].percentX !== 'number') {
-                    positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
-                }
-            }
-            saveToCloud();
-            rebuildUI();
-        }
-
-        // 切換名單核心函數
-        async function switchRoster(rosterType) {
-            if (rosterType === currentRoster) return;
-            // 儲存當前名單狀態
-            if (cloudDataCache) {
-                if (!cloudDataCache.rosters[currentRoster]) cloudDataCache.rosters[currentRoster] = { currentFormation: '321', formations: {} };
-                cloudDataCache.rosters[currentRoster].currentFormation = currentFormation;
-                if (!cloudDataCache.rosters[currentRoster].formations) cloudDataCache.rosters[currentRoster].formations = {};
-                cloudDataCache.rosters[currentRoster].formations[currentFormation] = { players: selectedPlayers, coords: positionsPercent };
-                await saveToCloud();
-            }
-            currentRoster = rosterType;
-            activePlayers = (currentRoster === 'workers') ? [...WORKERS_CUP_PLAYERS] : [...RESERVE_PLAYERS];
-            // 載入新名單數據
-            const rosterData = cloudDataCache.rosters[currentRoster];
-            currentFormation = rosterData.currentFormation || '321';
-            formationSelect.value = currentFormation;
-            selectedPlayers = { ...(rosterData.formations[currentFormation]?.players || {}) };
-            positionsPercent = { ...(rosterData.formations[currentFormation]?.coords || {}) };
-            const layout = formations[currentFormation].layout;
-            for (let pos of formations[currentFormation].positions) {
-                if (!positionsPercent[pos] || typeof positionsPercent[pos].percentX !== 'number') {
-                    positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
-                }
-            }
-            // 清理無效球員
-            for (let pos in selectedPlayers) {
-                if (selectedPlayers[pos] && !activePlayers.includes(selectedPlayers[pos])) {
-                    selectedPlayers[pos] = '';
-                }
-            }
-            updateRosterButtonUI();
-            rebuildUI();
-            saveToCloud(); // 儲存載入後可能清理的狀態
-        }
-
-        function updateRosterButtonUI() {
-            if (currentRoster === 'workers') {
-                rosterWorkersBtn.classList.add('active');
-                rosterReserveBtn.classList.remove('active');
-            } else {
-                rosterReserveBtn.classList.add('active');
-                rosterWorkersBtn.classList.remove('active');
-            }
-        }
-
-        // ---------- 拖曳 / UI 重建 (使用 activePlayers) ----------
-        function makeDraggable(element, posKey) { /* 完全沿用原有邏輯，但引用 updatePositionToCloud 正確 */
-            let startX = 0, startY = 0, startLeft = 0, startTop = 0, isDragging = false, dragStarted = false, hasMoved = false;
-            const container = pitchContainer;
-            function onPointerDown(e) {
-                e.preventDefault(); e.stopPropagation();
-                const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
-                const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
-                startX = clientX; startY = clientY;
-                const rect = element.getBoundingClientRect(), containerRect = container.getBoundingClientRect();
-                startLeft = rect.left - containerRect.left; startTop = rect.top - containerRect.top;
-                element.style.left = startLeft + 'px'; element.style.top = startTop + 'px';
-                isDragging = true; dragStarted = false; hasMoved = false;
-                window.addEventListener('mousemove', onPointerMove); window.addEventListener('mouseup', onPointerUp);
-                window.addEventListener('touchmove', onPointerMove, { passive: false }); window.addEventListener('touchend', onPointerUp); window.addEventListener('touchcancel', onPointerUp);
-                element.classList.add('dragging');
-            }
-            function onPointerMove(e) {
-                if (!isDragging) return; e.preventDefault();
-                const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
-                const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
-                const dx = clientX - startX, dy = clientY - startY;
-                if (!dragStarted && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) { dragStarted = true; hasMoved = true; }
-                if (dragStarted) {
-                    let newLeft = startLeft + dx, newTop = startTop + dy;
-                    const containerRect = container.getBoundingClientRect(), elemRect = element.getBoundingClientRect();
-                    newLeft = Math.min(Math.max(0, newLeft), containerRect.width - elemRect.width);
-                    newTop = Math.min(Math.max(0, newTop), containerRect.height - elemRect.height);
-                    element.style.left = newLeft + 'px'; element.style.top = newTop + 'px';
-                }
-            }
-            function onPointerUp() {
-                if (!isDragging) return; isDragging = false; element.classList.remove('dragging');
-                window.removeEventListener('mousemove', onPointerMove); window.removeEventListener('mouseup', onPointerUp);
-                window.removeEventListener('touchmove', onPointerMove); window.removeEventListener('touchend', onPointerUp); window.removeEventListener('touchcancel', onPointerUp);
-                if (hasMoved) {
-                    const newLeft = parseFloat(element.style.left), newTop = parseFloat(element.style.top);
-                    if (!isNaN(newLeft) && !isNaN(newTop)) {
-                        const { percentX, percentY } = pixelsToPercent(newLeft, newTop);
-                        updatePositionToCloud(posKey, percentX, percentY);
-                    }
-                } else { showPositionDetails(posKey); }
-                hasMoved = false; dragStarted = false;
-            }
-            element.addEventListener('mousedown', onPointerDown); element.addEventListener('touchstart', onPointerDown, { passive: false });
-        }
-        function repositionAllPlayers() {
-            const formation = formations[currentFormation];
-            if (!formation) return;
-            for (let pos of formation.positions) {
-                const playerDiv = document.getElementById(`${pos}-player`);
-                if (!playerDiv) continue;
-                const percent = positionsPercent[pos];
-                if (!percent || typeof percent.percentX !== 'number') continue;
-                const { left, top } = percentToPixels(percent.percentX, percent.percentY);
-                playerDiv.style.left = left + 'px'; playerDiv.style.top = top + 'px';
-            }
-        }
         function rebuildUI() {
-            const formation = formations[currentFormation];
-            if (!formation) return;
+            const form = formations[currentFormation];
+            if (!form) return;
             positionsContainer.innerHTML = '';
-            for (let pos of formation.positions) {
-                const label = document.createElement('label');
-                label.textContent = formation.details[pos].name + ':';
-                const select = document.createElement('select');
-                select.id = pos;
+            for (let pos of form.positions) {
+                let label = document.createElement('label'); label.textContent = form.details[pos].name + ':';
+                let select = document.createElement('select'); select.id = pos;
                 select.innerHTML = '<option value="">選擇球員</option>' + activePlayers.map(p => `<option value="${p}">${p}</option>`).join('');
                 if (selectedPlayers[pos]) select.value = selectedPlayers[pos];
-                select.onchange = (e) => { selectedPlayers[pos] = e.target.value; updatePlayerToCloud(pos, e.target.value); updatePitchAndSubs(); };
+                select.onchange = (e) => { selectedPlayers[pos] = e.target.value; updatePlayerToCloud(pos, e.target.value); };
                 positionsContainer.appendChild(label); positionsContainer.appendChild(select);
             }
-            pitchContainer.innerHTML = '<div id="pitch-error" style="display: none;">無法加載足球場圖片</div>';
-            for (let pos of formation.positions) {
-                const playerDiv = document.createElement('div'); playerDiv.className = 'player'; playerDiv.id = `${pos}-player`;
-                playerDiv.textContent = selectedPlayers[pos] || pos.toUpperCase(); pitchContainer.appendChild(playerDiv);
+            pitchContainer.innerHTML = '<div id="pitch-error" style="display:none;"></div>';
+            for (let pos of form.positions) {
+                let div = document.createElement('div'); div.className = 'player'; div.id = `${pos}-player`;
+                div.textContent = selectedPlayers[pos] || pos.toUpperCase();
+                pitchContainer.appendChild(div);
             }
-            const applyPositions = () => {
-                if (pitchContainer.clientWidth === 0 || pitchContainer.clientHeight === 0) { requestAnimationFrame(applyPositions); return; }
-                repositionAllPlayers();
-                for (let pos of formation.positions) {
-                    const playerDiv = document.getElementById(`${pos}-player`);
-                    if (playerDiv && !playerDiv.hasAttribute('data-draggable-bound')) { makeDraggable(playerDiv, pos); playerDiv.setAttribute('data-draggable-bound', 'true'); }
+            const applyPos = () => {
+                if (pitchContainer.clientWidth===0) { requestAnimationFrame(applyPos); return; }
+                for (let pos of form.positions) {
+                    let percent = positionsPercent[pos];
+                    if (!percent) continue;
+                    let {left,top} = percentToPixels(percent.percentX, percent.percentY);
+                    let playerDiv = document.getElementById(`${pos}-player`);
+                    if(playerDiv) { playerDiv.style.left = left+'px'; playerDiv.style.top = top+'px'; if(!playerDiv.hasAttribute('data-draggable')) { makeDraggable(playerDiv,pos); playerDiv.setAttribute('data-draggable','true'); } }
                 }
             };
-            requestAnimationFrame(applyPositions);
+            requestAnimationFrame(applyPos);
             positionDetailsDiv.innerHTML = '';
-            for (let pos of formation.positions) {
-                const info = formation.details[pos];
-                positionDetailsDiv.innerHTML += `<div id="${pos}-info" class="position-info"><h3>${info.name}</h3><p><strong>戰術要求:</strong> ${info.tactics}</p><p><strong>技術要求:</strong> ${info.tech}</p><p><strong>進攻時位置要求:</strong> ${info.off}</p><p><strong>防守時位置要求:</strong> ${info.def}</p><p><strong>代表球員:</strong> ${info.example}</p></div>`;
+            for (let pos of form.positions) {
+                let info = form.details[pos];
+                positionDetailsDiv.innerHTML += `<div id="${pos}-info" class="position-info"><h3>${info.name}</h3><p><strong>戰術要求:</strong> ${info.tactics}</p><p><strong>技術要求:</strong> ${info.tech}</p><p><strong>進攻:</strong> ${info.off}</p><p><strong>防守:</strong> ${info.def}</p><p><strong>模板:</strong> ${info.example}</p></div>`;
             }
-            if (formation.positions.length) showPositionDetails(formation.positions[0]);
-            updatePitchAndSubs();
-        }
-        function updatePitchAndSubs() {
-            const formation = formations[currentFormation];
-            const selectedSet = new Set();
-            for (let pos of formation.positions) {
-                const playerDiv = document.getElementById(`${pos}-player`);
-                const playerName = selectedPlayers[pos] || "";
-                if (playerDiv) playerDiv.textContent = playerName || pos.toUpperCase();
-                if (playerName) selectedSet.add(playerName);
-            }
+            const selectedSet = new Set(Object.values(selectedPlayers).filter(v=>v));
             const subs = activePlayers.filter(p => !selectedSet.has(p));
             subsListDiv.innerHTML = subs.map(p => `<p>${p}</p>`).join('');
+            if (form.positions.length) showPositionDetails(form.positions[0]);
         }
-        function showPositionDetails(pos) { document.querySelectorAll('.position-info').forEach(el => el.style.display = 'none'); const target = document.getElementById(`${pos}-info`); if (target) target.style.display = 'block'; }
-
-        // 手機/電腦版切換 (同原)
-        let currentLayout = 'auto';
-        function setLayoutMode(mode) {
-            currentLayout = mode;
-            document.body.classList.remove('force-mobile', 'force-desktop');
-            if (mode === 'mobile') document.body.classList.add('force-mobile');
-            else if (mode === 'desktop') document.body.classList.add('force-desktop');
-            localStorage.setItem('layoutMode', mode);
-            document.getElementById('btn-auto').classList.toggle('active', mode === 'auto');
-            document.getElementById('btn-mobile').classList.toggle('active', mode === 'mobile');
-            document.getElementById('btn-desktop').classList.toggle('active', mode === 'desktop');
-            requestAnimationFrame(() => repositionAllPlayers());
+        function makeDraggable(el, posKey) {
+            let startX,startY,startLeft,startTop,dragging=false,moved=false;
+            const container = pitchContainer;
+            const onMove = (e) => { if(!dragging) return; e.preventDefault(); let cx=e.clientX??(e.touches?.[0]?.clientX:0), cy=e.clientY??(e.touches?.[0]?.clientY:0); let dx=cx-startX, dy=cy-startY; if(!moved && (Math.abs(dx)>5||Math.abs(dy)>5)) moved=true; if(moved){ let nl=startLeft+dx, nt=startTop+dy; let maxX=container.clientWidth-el.clientWidth, maxY=container.clientHeight-el.clientHeight; nl=Math.min(Math.max(0,nl),maxX); nt=Math.min(Math.max(0,nt),maxY); el.style.left=nl+'px'; el.style.top=nt+'px'; } };
+            const onUp = () => { if(dragging){ dragging=false; window.removeEventListener('mousemove',onMove); window.removeEventListener('mouseup',onUp); window.removeEventListener('touchmove',onMove); window.removeEventListener('touchend',onUp); if(moved){ let leftPx=parseFloat(el.style.left), topPx=parseFloat(el.style.top); if(!isNaN(leftPx)){ let {percentX,percentY}=pixelsToPercent(leftPx,topPx); updatePositionToCloud(posKey,percentX,percentY); } } else showPositionDetails(posKey); moved=false; } };
+            const onDown = (e) => { e.preventDefault(); let cx=e.clientX??(e.touches?.[0]?.clientX:0), cy=e.clientY??(e.touches?.[0]?.clientY:0); startX=cx; startY=cy; let rect=el.getBoundingClientRect(),cRect=container.getBoundingClientRect(); startLeft=rect.left-cRect.left; startTop=rect.top-cRect.top; dragging=true; moved=false; window.addEventListener('mousemove',onMove); window.addEventListener('mouseup',onUp); window.addEventListener('touchmove',onMove,{passive:false}); window.addEventListener('touchend',onUp); el.classList.add('dragging'); };
+            el.addEventListener('mousedown',onDown); el.addEventListener('touchstart',onDown,{passive:false});
         }
-        function initResizeListener() { window.addEventListener('resize', () => { if (resizeTimer) clearTimeout(resizeTimer); resizeTimer = setTimeout(() => repositionAllPlayers(), 100); }); }
-
-        // 事件綁定
-        formationSelect.onchange = () => { if (formationSelect.value !== currentFormation) updateFormationToCloud(formationSelect.value); };
-        document.getElementById('btn-auto').addEventListener('click', () => setLayoutMode('auto'));
-        document.getElementById('btn-mobile').addEventListener('click', () => setLayoutMode('mobile'));
-        document.getElementById('btn-desktop').addEventListener('click', () => setLayoutMode('desktop'));
+        function showPositionDetails(pos) { document.querySelectorAll('.position-info').forEach(el=>el.style.display='none'); let target=document.getElementById(`${pos}-info`); if(target) target.style.display='block'; }
+        function updateFormationToCloud(val) { currentFormation = val; const rosterData = cloudDataCache.rosters[currentRoster]; const formData = rosterData.formations[currentFormation]; if(formData && formData.players) { selectedPlayers = {...formData.players}; positionsPercent = {...formData.coords}; } else { selectedPlayers = {}; positionsPercent = {}; const layout=formations[currentFormation].layout; for(let pos of formations[currentFormation].positions) if(!positionsPercent[pos]) positionsPercent[pos]={percentX:layout[pos].left,percentY:layout[pos].top}; const auto=autoAssignPlayers(activePlayers,currentFormation); for(let pos of formations[currentFormation].positions) if(!selectedPlayers[pos] && auto[pos]) selectedPlayers[pos]=auto[pos]; } saveToCloud(); rebuildUI(); }
+        async function switchRoster(rosterType) { if(rosterType===currentRoster) return; if(cloudDataCache){ cloudDataCache.rosters[currentRoster].currentFormation=currentFormation; cloudDataCache.rosters[currentRoster].formations[currentFormation]={players:selectedPlayers,coords:positionsPercent}; await saveToCloud(); } currentRoster=rosterType; activePlayers = (currentRoster==='workers') ? [...WORKERS_CUP_PLAYERS] : [...CUP_2026_PLAYERS]; const rosterData=cloudDataCache.rosters[currentRoster]; currentFormation=rosterData.currentFormation||'442'; formationSelect.value=currentFormation; const fd=rosterData.formations[currentFormation]; selectedPlayers=fd?.players?{...fd.players}:{}; positionsPercent=fd?.coords?{...fd.coords}:{}; const layout=formations[currentFormation].layout; for(let pos of formations[currentFormation].positions) if(!positionsPercent[pos]) positionsPercent[pos]={percentX:layout[pos].left,percentY:layout[pos].top}; let needAuto=false; for(let pos of formations[currentFormation].positions) if(!selectedPlayers[pos]) needAuto=true; if(needAuto){ const auto=autoAssignPlayers(activePlayers,currentFormation); for(let pos of formations[currentFormation].positions) if(!selectedPlayers[pos] && auto[pos]) selectedPlayers[pos]=auto[pos]; } rosterWorkersBtn.classList.toggle('active',currentRoster==='workers'); rosterReserveBtn.classList.toggle('active',currentRoster==='reserve'); rebuildUI(); saveToCloud(); }
+        function setLayoutMode(mode) { document.body.classList.remove('force-mobile','force-desktop'); if(mode==='mobile') document.body.classList.add('force-mobile'); else if(mode==='desktop') document.body.classList.add('force-desktop'); localStorage.setItem('layoutMode',mode); ['auto','mobile','desktop'].forEach(id=>document.getElementById(`btn-${id}`).classList.toggle('active',mode===id)); requestAnimationFrame(()=>{if(typeof repositionAllPlayers==='function')repositionAllPlayers(); else rebuildUI();}); }
+        window.addEventListener('resize',()=>{ if(resizeTimer) clearTimeout(resizeTimer); resizeTimer=setTimeout(()=>{ if(pitchContainer) for(let pos of formations[currentFormation]?.positions||[]){ let pdiv=document.getElementById(`${pos}-player`); if(pdiv&&positionsPercent[pos]){ let {left,top}=percentToPixels(positionsPercent[pos].percentX,positionsPercent[pos].percentY); pdiv.style.left=left+'px'; pdiv.style.top=top+'px';} } },100);});
+        formationSelect.onchange = () => { if(formationSelect.value !== currentFormation) updateFormationToCloud(formationSelect.value); };
+        document.getElementById('btn-auto').addEventListener('click',()=>setLayoutMode('auto'));
+        document.getElementById('btn-mobile').addEventListener('click',()=>setLayoutMode('mobile'));
+        document.getElementById('btn-desktop').addEventListener('click',()=>setLayoutMode('desktop'));
         addVideoBtn.addEventListener('click', addVideo);
-        rosterWorkersBtn.addEventListener('click', () => switchRoster('workers'));
-        rosterReserveBtn.addEventListener('click', () => switchRoster('reserve'));
-
-        const savedLayout = localStorage.getItem('layoutMode');
-        if (savedLayout && ['auto','mobile','desktop'].includes(savedLayout)) setLayoutMode(savedLayout); else setLayoutMode('auto');
-        const imgTest = new Image(); imgTest.src = 'https://raw.githubusercontent.com/caneswst/Falcon352/refs/heads/main/football_pitch.jpg';
-        imgTest.onerror = () => document.getElementById('pitch-error').style.display = 'block';
-        initResizeListener();
+        rosterWorkersBtn.addEventListener('click',()=>switchRoster('workers'));
+        rosterReserveBtn.addEventListener('click',()=>switchRoster('reserve'));
+        setLayoutMode(localStorage.getItem('layoutMode')||'auto');
         loadFromCloud();
     </script>
 </body>
