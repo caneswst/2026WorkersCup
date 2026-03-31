@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>傲翔2026戰術板｜丙組11人場｜雙名單穩定版</title>
+    <title>傲翔2026戰術板｜工人盃(7人) + 丙組(11人) 雙名單</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap');
 
@@ -22,6 +22,53 @@
             overflow-x: hidden;
             min-height: 100vh;
         }
+        /* 全局預設球員樣式 (工人盃) */
+        .player {
+            position: absolute;
+            background: #4682b4;  /* 工人盃深藍色 */
+            border-radius: 50%;
+            color: #fff;
+            text-align: center;
+            cursor: grab;
+            transition: box-shadow 0.2s, transform 0.1s;
+            transform: translate(-50%, -50%);
+            will-change: left, top;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,240,0.7);
+            font-weight: bold;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            padding: 0 2px;
+        }
+        .player:active {
+            cursor: grabbing;
+        }
+        .player.dragging {
+            opacity: 0.85;
+            cursor: grabbing;
+            z-index: 100;
+            transition: none;
+        }
+        /* 丙組專用樣式 (淺紫色 + 稍大尺寸) */
+        body.roster-reserve .player {
+            background: #b39ddb;      /* 淺紫色 */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            border: 1px solid #e0c3ff;
+            width: clamp(24px, 3.2vw, 38px);
+            height: clamp(24px, 3.2vw, 38px);
+            line-height: clamp(24px, 3.2vw, 38px);
+            font-size: clamp(10px, 1.3vw, 13px);
+        }
+        /* 工人盃原有尺寸 (較大) */
+        body.roster-workers .player {
+            width: clamp(37.5px, 5.25vw, 60px);
+            height: clamp(37.5px, 5.25vw, 60px);
+            line-height: clamp(37.5px, 5.25vw, 60px);
+            font-size: clamp(12px, 2.25vw, 21px);
+        }
+
         #header {
             text-align: center;
             padding: 2vh 0;
@@ -57,10 +104,6 @@
         .layout-btn.active {
             background: #f4c542;
             color: #2c3e2f;
-        }
-        .layout-btn:hover {
-            background: #f4c542;
-            transform: scale(1.02);
         }
         .roster-switch-group {
             display: flex;
@@ -111,39 +154,6 @@
             box-shadow: 0 0 8px rgba(0,0,0,0.2);
             background-color: #2e8b57;
             overflow: hidden;
-        }
-        /* 球員圖示大小減少60% (原尺寸約40%) 清晰可見 */
-        .player {
-            position: absolute;
-            width: clamp(20px, 2.8vw, 32px);
-            height: clamp(20px, 2.8vw, 32px);
-            background: #d4451e;
-            border-radius: 50%;
-            color: #fff;
-            text-align: center;
-            line-height: clamp(20px, 2.8vw, 32px);
-            cursor: grab;
-            font-size: clamp(9px, 1.2vw, 12px);
-            font-weight: bold;
-            transition: box-shadow 0.2s, transform 0.1s;
-            transform: translate(-50%, -50%);
-            will-change: left, top;
-            z-index: 10;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            border: 1px solid #fff3cf;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            padding: 0 2px;
-        }
-        .player:active {
-            cursor: grabbing;
-        }
-        .player.dragging {
-            opacity: 0.85;
-            cursor: grabbing;
-            z-index: 100;
-            transition: none;
         }
         #left-panel, #subs-container, #right-panel {
             flex: 1 1 18%;
@@ -215,7 +225,6 @@
             background: #f0f7f0;
             border-radius: 12px;
             border-left: 5px solid #ff0000;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
         }
         .input-row {
             display: flex;
@@ -270,14 +279,14 @@
         .video-actions .delete-btn {
             background: #dc3545;
         }
-        /* 響應式佈局 */
+
+        /* 響應式佈局 (保持與原有相同) */
         body.force-mobile .container { flex-direction: column; padding: 2vw; }
         body.force-mobile #pitch-container { width: 100%; min-height: 50vh; max-height: 400px; flex: none; }
-        body.force-mobile .player { width: 10vw; height: 10vw; line-height: 10vw; font-size: 3.5vw; }
+        body.force-mobile .player { width: 9vw; height: 9vw; line-height: 9vw; font-size: 3vw; }
 
         body.force-desktop .container { flex-direction: row; flex-wrap: nowrap; }
         body.force-desktop #pitch-container { flex: 0 0 28%; }
-        body.force-desktop .player { width: clamp(20px, 2.8vw, 32px); height: clamp(20px, 2.8vw, 32px); line-height: clamp(20px, 2.8vw, 32px); font-size: clamp(9px, 1.2vw, 12px); }
 
         @media (max-width: 900px) {
             body:not(.force-desktop):not(.force-mobile) .container { flex-wrap: wrap; }
@@ -285,13 +294,13 @@
         }
         @media (max-width: 600px) {
             body:not(.force-desktop):not(.force-mobile) .container { flex-direction: column; }
-            body:not(.force-desktop):not(.force-mobile) .player { width: 10vw; height: 10vw; line-height: 10vw; font-size: 3.5vw; }
+            body:not(.force-desktop):not(.force-mobile) .player { width: 9vw; height: 9vw; line-height: 9vw; font-size: 3vw; }
         }
     </style>
 </head>
 <body>
 <div id="header">
-    <h1>傲翔2026 丙組聯賽｜11人場戰術板 (雙名單穩定版)</h1>
+    <h1>傲翔2026 戰術板｜工人盃(7人) + 丙組(11人)</h1>
     <div class="layout-switch">
         <button id="btn-desktop" class="layout-btn">💻 電腦版</button>
         <button id="btn-mobile" class="layout-btn">📱 手機版</button>
@@ -302,20 +311,16 @@
     <div id="left-panel">
         <h2>陣容選擇</h2>
         <div class="roster-switch-group">
-            <button id="roster-workers" class="roster-btn">🏆 工人盃名單</button>
-            <button id="roster-reserve" class="roster-btn active">⚽ 2026年丙組名單 (26人)</button>
+            <button id="roster-workers" class="roster-btn active">🏆 工人盃名單 (7人場)</button>
+            <button id="roster-reserve" class="roster-btn">⚽ 2026年丙組名單 (11人場)</button>
         </div>
-        <label>選擇陣型 (11人制):</label>
-        <select id="formation-select">
-            <option value="442">4-4-2 (平行)</option>
-            <option value="4231">4-2-3-1 (雙防中)</option>
-            <option value="451">4-5-1 (穩守)</option>
-        </select>
+        <label>選擇陣型:</label>
+        <select id="formation-select"></select>
         <div id="positions-container"></div>
         <div class="sync-status" id="sync-status">🔄 同步中...</div>
     </div>
     <div id="subs-container">
-        <h3>後備球員 (點擊下拉變更正選)</h3>
+        <h3>後備球員</h3>
         <div id="subs-list"></div>
     </div>
     <div id="pitch-container">
@@ -337,18 +342,70 @@
 </div>
 
 <script>
-    // ======================= 球員名單定義 =======================
-    // 丙組 26人完整名單 (預備組更新)
+    // ======================= 球員名單 =======================
+    // 工人盃 (7人場) 原有完整名單
+    const WORKERS_CUP_PLAYERS = ['禮', '新', 'Mike', 'Dan', '東', '軍c', 'Xander', 'Alex', '光', 'Frankie', 'Ivan', 'Vasco', '曹', 'Gary'];
+    // 丙組 (11人場) 26人名單
     const CUP_2026_PLAYERS = [
         'Xanderrrrr', 'Alex', '阿光', 'Gary', '阿東', '阿禮', 'Nowson', 'Vasco',
         '軍c', '阿新', 'Mike', 'Dan', 'Ivan', '曹', '威', 'Nate', '俊', '航',
         '杰', 'Kenneth', 'Kenneth 朋友', '銳', '23.a', '24.b', '25.c', '26.d'
     ];
-    // 工人盃原有名單 (7人場資料保留)
-    const WORKERS_CUP_PLAYERS = ['禮', '新', 'Mike', 'Dan', '東', '軍c', 'Xander', 'Alex', '光', 'Frankie', 'Ivan', 'Vasco', '曹', 'Gary'];
 
-    // ======================= 11人場 三陣型完整定義 (442,4231,451) =======================
-    const formations = {
+    // ======================= 工人盃 7人場陣型 (完全保留原始) =======================
+    const sevenFormations = {
+        '321': {
+            positions: ['gk', 'lcb', 'cb', 'rcb', 'lm', 'rm', 'st'],
+            layout: {
+                'gk': { left: 50, top: 90 }, 'lcb': { left: 10, top: 50 }, 'cb': { left: 50, top: 65 },
+                'rcb': { left: 90, top: 50 }, 'lm': { left: 35, top: 35 }, 'rm': { left: 65, top: 35 }, 'st': { left: 50, top: 15 }
+            },
+            details: {
+                'gk': { name: '門將 (GK)', tactics: '七人場的防守核心，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門線，果斷出擊攔截單刀或高空球。', example: 'Manuel Neuer' },
+                'lcb': { name: '左中後衛 (LCB)', tactics: '防守左側，協助中後衛穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援左中場快速推進。', def: '封堵左路突破，清空禁區威脅，快速回防。', example: 'Giorgio Chiellini' },
+                'cb': { name: '中後衛 (CB)', tactics: '防守核心，負責統籌後防並清空禁區，適時長傳發動進攻。', tech: '頭球 92, 搶斷 95, 傳球 85, 力量 90', off: '長傳至前場，支援邊路快速反擊。', def: '盯防對方前鋒，清空高空球，保持防線穩定。', example: 'Virgil van Dijk' },
+                'rcb': { name: '右中後衛 (RCB)', tactics: '防守右側，與中後衛協作穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援右中場快速推進。', def: '封堵右路突破，清空禁區威脅，快速回防。', example: 'Sergio Ramos' },
+                'lm': { name: '左中場 (LM)', tactics: '負責左路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方右後衛，快速回防協助左中後衛。', example: 'Son Heung-min' },
+                'rm': { name: '右中場 (RM)', tactics: '負責右路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方左後衛，快速回防協助右中後衛。', example: 'Bukayo Saka' },
+                'st': { name: '前鋒 (ST)', tactics: '進攻終結者，積極壓迫對方後衛，尋找空位得分機會。', tech: '射門 92, 速度 90, 位置感 92, 搶點 90', off: '位於禁區前沿，接應邊路傳球或直接射門。', def: '高位壓迫對方中後衛，爭搶第一落點。', example: 'Harry Kane' }
+            }
+        },
+        '312': {
+            positions: ['gk', 'lcb', 'cb', 'rcb', 'cm', 'lst', 'rst'],
+            layout: {
+                'gk': { left: 50, top: 90 }, 'lcb': { left: 30, top: 70 }, 'cb': { left: 50, top: 70 },
+                'rcb': { left: 70, top: 70 }, 'cm': { left: 50, top: 50 }, 'lst': { left: 40, top: 15 }, 'rst': { left: 60, top: 15 }
+            },
+            details: {
+                'gk': { name: '門將 (GK)', tactics: '七人場的防守支柱，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門，快速出擊攔截單刀球。', example: 'Manuel Neuer' },
+                'lcb': { name: '左中後衛 (LCB)', tactics: '防守左側，協助中後衛形成緊密防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援左前鋒快速推進。', def: '封堵左路進攻，清空禁區，快速回防。', example: 'Giorgio Chiellini' },
+                'cb': { name: '中後衛 (CB)', tactics: '防守核心，負責清空禁區並指揮後防，適時長傳發動進攻。', tech: '頭球 92, 搶斷 95, 傳球 85, 力量 90', off: '長傳至前場，支援邊路快速反擊。', def: '盯防前鋒，清空高空球，保持防線穩定。', example: 'Virgil van Dijk' },
+                'rcb': { name: '右中後衛 (RCB)', tactics: '防守右側，與中後衛協作穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援右前鋒快速推進。', def: '封堵右路進攻，清空禁區，快速回防。', example: 'Sergio Ramos' },
+                'cm': { name: '中場 (CM)', tactics: '進攻與防守的樞紐，負責中場控制並積極前插支援進攻。', tech: '傳球 88, 搶斷 85, 視野 90, 速度 88', off: '前插至對方禁區邊緣，分球至雙前鋒或直接射門。', def: '高位壓迫對方中場，快速回防保護後衛。', example: 'Toni Kroos' },
+                'lst': { name: '左前鋒 (LST)', tactics: '負責左路進攻終結，快速前插並壓迫對方防線，與右前鋒配合。', tech: '射門 90, 速度 92, 盤帶 90, 位置感 90', off: '快速前插至對方禁區，內切射門或傳中給右前鋒。', def: '高位壓迫對方右後衛，爭搶第二落點。', example: 'Son Heung-min' },
+                'rst': { name: '右前鋒 (RST)', tactics: '負責右路進攻終結，快速前插並壓迫對方防線，與左前鋒配合。', tech: '射門 90, 速度 92, 盤帶 90, 位置感 90', off: '快速前插至對方禁區，內切射門或傳中給左前鋒。', def: '高位壓迫對方左後衛，爭搶第二落點。', example: 'Kylian Mbappé' }
+            }
+        },
+        '231': {
+            positions: ['gk', 'lcb', 'rcb', 'lm', 'cm', 'rm', 'st'],
+            layout: {
+                'gk': { left: 50, top: 90 }, 'lcb': { left: 35, top: 70 }, 'rcb': { left: 65, top: 70 },
+                'lm': { left: 25, top: 35 }, 'cm': { left: 50, top: 40 }, 'rm': { left: 75, top: 35 }, 'st': { left: 50, top: 15 }
+            },
+            details: {
+                'gk': { name: '門將 (GK)', tactics: '七人場的防守最後屏障，負責守門並快速發動反擊，積極參與進攻組織。', tech: '撲救 90, 開球 88, 反應 95, 位置感 88', off: '快速長傳至前場，支援邊路快速反擊。', def: '守住球門線，攔截單刀球。', example: 'Manuel Neuer' },
+                'lcb': { name: '左後衛 (LCB)', tactics: '防守左側，協助右後衛穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援左中場快速推進。', def: '封堵左路進攻，退守補位，快速回防。', example: 'Andrew Robertson' },
+                'rcb': { name: '右後衛 (RCB)', tactics: '防守右側，與左後衛協作穩固防線，適時前插參與進攻。', tech: '頭球 88, 搶斷 90, 傳球 82, 速度 85', off: '前插至中場分球，支援右中場快速推進。', def: '封堵右路進攻，退守補位，快速回防。', example: 'Kyle Walker' },
+                'lm': { name: '左中場 (LM)', tactics: '負責左路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方右後衛，快速回防協助左後衛。', example: 'Son Heung-min' },
+                'cm': { name: '中場 (CM)', tactics: '中場核心，負責組織進攻並積極前插，支援邊路和前鋒。', tech: '傳球 88, 搶斷 85, 視野 90, 速度 88', off: '前插至對方禁區邊緣，分球至邊路或直接射門。', def: '高位壓迫對方中場，快速回防保護後衛。', example: 'Luka Modrić' },
+                'rm': { name: '右中場 (RM)', tactics: '負責右路進攻主導，快速前插並壓迫對方防線，提供場地寬度。', tech: '傳中 88, 速度 92, 盤帶 90, 體力 90', off: '快速前插至對方禁區邊緣，傳中或內切射門。', def: '高位壓迫對方左後衛，快速回防協助右後衛。', example: 'Bukayo Saka' },
+                'st': { name: '前鋒 (ST)', tactics: '進攻終結者，積極壓迫對方後衛，尋找空位得分機會。', tech: '射門 92, 速度 90, 位置感 92, 搶點 90', off: '位於禁區前沿，接應邊路傳球或直接射門。', def: '高位壓迫對方中後衛，爭搶第一落點。', example: 'Harry Kane' }
+            }
+        }
+    };
+
+    // ======================= 丙組 11人場陣型 (442,4231,451) =======================
+    const elevenFormations = {
         '442': {
             positions: ['gk', 'lb', 'lcb', 'rcb', 'rb', 'lm', 'lcm', 'rcm', 'rm', 'ls', 'rs'],
             layout: {
@@ -377,10 +434,9 @@
             details: {}
         }
     };
-
-    // 填充11人場專業戰術說明
-    const fillDetails = () => {
-        const commonTactic = {
+    // 為11人陣型填充戰術說明
+    const fillElevenDetails = () => {
+        const common = {
             'gk': { name: '門將 (GK)', tactics: '防守最後屏障，指揮防線，擅長出擊接高球及快速分邊反擊。', tech: '撲救反應 90, 高空控制 88, 分球能力 85', off: '手拋球或大腳給兩翼發動快攻。', def: '果斷出擊封單刀，指揮人牆佈防。', example: 'Alisson Becker' },
             'lb': { name: '左閘 (LB)', tactics: '防守左路，適時疊瓦助攻，提供傳中支援。', tech: '攔截 85, 傳中 82, 速度 88', off: '沿邊線前插，底線傳中或短傳滲透。', def: '一對一緊貼翼鋒，內收協防中堅。', example: 'Theo Hernández' },
             'rb': { name: '右閘 (RB)', tactics: '防守右路，協助組織，疊瓦式助攻。', tech: '搶斷 86, 傳中 83, 體力 90', off: '支援右中場，拉開寬度。', def: '卡位封內切路線，快速回防。', example: 'Trent Alexander-Arnold' },
@@ -400,65 +456,23 @@
             'st': { name: '單箭頭 (ST)', tactics: '支點中鋒，背身護球，分球後插入禁區。', tech: '射術 94, 身體對抗 89, 頭球 90', off: '接應兩翼傳中，搶點破門。', def: '前場第一道防線，壓迫中堅。', example: 'Robert Lewandowski' },
             'cm': { name: '正中場 (CM)', tactics: '中場節拍器，平衡攻守。', tech: '傳控 90, 大局觀 88, 遠射 83', off: '過渡銜接，轉移進攻方向。', def: '保持防守站位，切斷傳球。', example: 'Toni Kroos' }
         };
-        for (let form in formations) {
-            for (let pos of formations[form].positions) {
-                if (commonTactic[pos]) formations[form].details[pos] = commonTactic[pos];
-                else formations[form].details[pos] = { name: pos.toUpperCase(), tactics: '依照戰術紀律執行', tech: '全能', off: '依教練部署', def: '團隊合作', example: '團隊球員' };
+        for (let form in elevenFormations) {
+            for (let pos of elevenFormations[form].positions) {
+                if (common[pos]) elevenFormations[form].details[pos] = common[pos];
+                else elevenFormations[form].details[pos] = { name: pos.toUpperCase(), tactics: '依照戰術紀律', tech: '全能', off: '依教練部署', def: '團隊合作', example: '團隊球員' };
             }
         }
     };
-    fillDetails();
-
-    // ======================= 智能位置分配 (確保所有11個位置都有球員) =======================
-    function getPlayerRole(name) {
-        if (name.includes('Nowson') || name.includes('Vasco') || name === 'Nowson' || name === 'Vasco') return 'gk';
-        if (name.includes('Gary') || name.includes('曹') || name.includes('威') || name.includes('Nate') || name.includes('航') || name.includes('俊')) return 'defender';
-        if (name.includes('Kenneth') || name.includes('銳') || name.includes('Mike') || name.includes('Dan') || name.includes('Ivan') || name.includes('軍c') || name.includes('阿新') || name.includes('阿光') || name.includes('Xander') || name.includes('Alex') || name.includes('阿東') || name.includes('阿禮')) return 'midfielder';
-        if (name.includes('杰')) return 'forward';
-        return 'midfielder';
-    }
-
-    function autoAssignPlayers(playersList, formationKey) {
-        const form = formations[formationKey];
-        if (!form) return {};
-        const posOrder = [...form.positions];
-        const assign = {};
-        const available = [...playersList];
-        // 1. 優先分配門將
-        const gkCandidates = available.filter(p => getPlayerRole(p) === 'gk');
-        if (gkCandidates.length > 0) assign.gk = gkCandidates[0];
-        // 2. 分配後衛 (lb,lcb,rcb,rb)
-        const defCandidates = available.filter(p => getPlayerRole(p) === 'defender' && !Object.values(assign).includes(p));
-        const defPos = ['lb', 'lcb', 'rcb', 'rb'].filter(p => form.positions.includes(p));
-        for (let i = 0; i < defPos.length && i < defCandidates.length; i++) assign[defPos[i]] = defCandidates[i];
-        // 3. 中場
-        const midCandidates = available.filter(p => (getPlayerRole(p) === 'midfielder') && !Object.values(assign).includes(p));
-        const midPos = form.positions.filter(p => !assign[p] && !['gk','lb','lcb','rcb','rb','ls','rs','st'].includes(p));
-        for (let i = 0; i < midPos.length && i < midCandidates.length; i++) assign[midPos[i]] = midCandidates[i];
-        // 4. 前鋒
-        const fwdCandidates = available.filter(p => (getPlayerRole(p) === 'forward') && !Object.values(assign).includes(p));
-        const fwdPos = form.positions.filter(p => p === 'st' || p === 'ls' || p === 'rs');
-        for (let i = 0; i < fwdPos.length && i < fwdCandidates.length; i++) assign[fwdPos[i]] = fwdCandidates[i];
-        // 5. 剩餘位置補齊 (從所有未使用的球員中按序填充)
-        const remaining = available.filter(p => !Object.values(assign).includes(p));
-        let idx = 0;
-        for (let pos of form.positions) {
-            if (!assign[pos] && idx < remaining.length) assign[pos] = remaining[idx++];
-        }
-        // 6. 若仍有位置空缺 (球員不足時)，使用「待補」佔位
-        for (let pos of form.positions) {
-            if (!assign[pos]) assign[pos] = '待補';
-        }
-        return assign;
-    }
+    fillElevenDetails();
 
     // ======================= 全域變數 =======================
-    let currentFormation = '442';
-    let selectedPlayers = {};      // 當前陣型每個位置的球員名字
-    let positionsPercent = {};     // 每個位置的百分比座標
+    let currentRoster = 'workers';      // workers / reserve
+    let activePlayers = [...WORKERS_CUP_PLAYERS];
+    let currentFormations = sevenFormations;   // 根據名單動態指向
+    let currentFormationKey = '321';
+    let selectedPlayers = {};
+    let positionsPercent = {};
     let cloudDataCache = null;
-    let currentRoster = 'reserve';  // 預設丙組2026
-    let activePlayers = [...CUP_2026_PLAYERS];
     let isSaving = false;
     let resizeTimer = null;
 
@@ -494,16 +508,16 @@
     }
     function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
 
-    // 雲端儲存
+    // 儲存雲端
     async function saveToCloud() {
         if (!cloudDataCache || isSaving) return;
         isSaving = true;
         try {
             if (!cloudDataCache.rosters) cloudDataCache.rosters = { workers: {}, reserve: {} };
-            if (!cloudDataCache.rosters[currentRoster]) cloudDataCache.rosters[currentRoster] = { currentFormation: '442', formations: {} };
-            cloudDataCache.rosters[currentRoster].currentFormation = currentFormation;
+            if (!cloudDataCache.rosters[currentRoster]) cloudDataCache.rosters[currentRoster] = { currentFormation: currentFormationKey, formations: {} };
+            cloudDataCache.rosters[currentRoster].currentFormation = currentFormationKey;
             if (!cloudDataCache.rosters[currentRoster].formations) cloudDataCache.rosters[currentRoster].formations = {};
-            cloudDataCache.rosters[currentRoster].formations[currentFormation] = { players: selectedPlayers, coords: positionsPercent };
+            cloudDataCache.rosters[currentRoster].formations[currentFormationKey] = { players: selectedPlayers, coords: positionsPercent };
             cloudDataCache.currentRoster = currentRoster;
             await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify(cloudDataCache) });
             syncStatusSpan.textContent = '✅ 已儲存';
@@ -511,38 +525,30 @@
         } catch (err) { console.error(err); syncStatusSpan.textContent = '❌ 儲存失敗'; }
         finally { isSaving = false; }
     }
-
     function updatePositionToCloud(pos, percentX, percentY) { positionsPercent[pos] = { percentX, percentY }; saveToCloud(); }
     function updatePlayerToCloud(pos, playerName) { selectedPlayers[pos] = playerName; saveToCloud(); rebuildUI(); }
 
-    // 確保當前陣型所有位置都有有效球員 (無空位)
-    function ensureAllPositionsFilled() {
-        const form = formations[currentFormation];
+    // 智能分配 (簡化: 依序填補)
+    function autoFillPositions() {
+        const form = currentFormations[currentFormationKey];
         if (!form) return;
-        let needAuto = false;
+        const assigned = new Set(Object.values(selectedPlayers).filter(v => v && v !== ''));
+        const available = activePlayers.filter(p => !assigned.has(p));
+        let idx = 0;
         for (let pos of form.positions) {
-            if (!selectedPlayers[pos] || selectedPlayers[pos] === '' || selectedPlayers[pos] === '待補') {
-                needAuto = true;
-                break;
-            }
-        }
-        if (needAuto) {
-            const auto = autoAssignPlayers(activePlayers, currentFormation);
-            for (let pos of form.positions) {
-                if (!selectedPlayers[pos] || selectedPlayers[pos] === '' || selectedPlayers[pos] === '待補') {
-                    if (auto[pos] && auto[pos] !== '待補') selectedPlayers[pos] = auto[pos];
-                    else selectedPlayers[pos] = '待補';
-                }
+            if (!selectedPlayers[pos] || selectedPlayers[pos] === '') {
+                if (idx < available.length) selectedPlayers[pos] = available[idx++];
+                else selectedPlayers[pos] = '待補';
             }
         }
     }
 
-    // 重新建構 UI (下拉選單、球場圖示、後備清單、戰術面板)
+    // 重建 UI
     function rebuildUI() {
-        const form = formations[currentFormation];
+        const form = currentFormations[currentFormationKey];
         if (!form) return;
 
-        // 1. 建立位置下拉選單
+        // 下拉選單
         positionsContainer.innerHTML = '';
         for (let pos of form.positions) {
             let label = document.createElement('label');
@@ -551,17 +557,12 @@
             select.id = pos;
             select.innerHTML = '<option value="">選擇球員</option>' + activePlayers.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
             if (selectedPlayers[pos]) select.value = selectedPlayers[pos];
-            select.onchange = (e) => {
-                selectedPlayers[pos] = e.target.value;
-                updatePlayerToCloud(pos, e.target.value);
-                ensureAllPositionsFilled();    // 避免空位
-                rebuildUI();
-            };
+            select.onchange = (e) => { selectedPlayers[pos] = e.target.value; updatePlayerToCloud(pos, e.target.value); autoFillPositions(); rebuildUI(); };
             positionsContainer.appendChild(label);
             positionsContainer.appendChild(select);
         }
 
-        // 2. 重建球場圖示
+        // 球場圖示
         pitchContainer.innerHTML = '<div id="pitch-error" style="display:none;"></div>';
         for (let pos of form.positions) {
             let div = document.createElement('div');
@@ -573,7 +574,6 @@
             pitchContainer.appendChild(div);
         }
 
-        // 3. 定位所有圖示 (等待容器尺寸)
         const applyPos = () => {
             if (pitchContainer.clientWidth === 0) { requestAnimationFrame(applyPos); return; }
             for (let pos of form.positions) {
@@ -593,7 +593,7 @@
         };
         requestAnimationFrame(applyPos);
 
-        // 4. 戰術面板
+        // 戰術面板
         positionDetailsDiv.innerHTML = '';
         for (let pos of form.positions) {
             let info = form.details[pos];
@@ -601,14 +601,13 @@
         }
         if (form.positions.length) showPositionDetails(form.positions[0]);
 
-        // 5. 後備名單 (未在正選中的球員)
+        // 後備名單
         const selectedSet = new Set(Object.values(selectedPlayers).filter(v => v && v !== '待補'));
         const subs = activePlayers.filter(p => !selectedSet.has(p));
         subsListDiv.innerHTML = subs.map(p => `<p>${escapeHtml(p)}</p>`).join('');
         if (subs.length === 0) subsListDiv.innerHTML = '<p>所有球員皆在正選名單</p>';
     }
 
-    // 拖曳功能
     function makeDraggable(el, posKey) {
         let startX, startY, startLeft, startTop, dragging = false, moved = false;
         const container = pitchContainer;
@@ -642,9 +641,7 @@
                         let { percentX, percentY } = pixelsToPercent(leftPx, topPx);
                         updatePositionToCloud(posKey, percentX, percentY);
                     }
-                } else {
-                    showPositionDetails(posKey);
-                }
+                } else showPositionDetails(posKey);
                 moved = false;
             }
         };
@@ -674,60 +671,73 @@
         if (target) target.style.display = 'block';
     }
 
-    // 切換陣型
-    function updateFormationToCloud(val) {
-        currentFormation = val;
-        const rosterData = cloudDataCache?.rosters?.[currentRoster];
-        const formData = rosterData?.formations?.[currentFormation];
-        if (formData && formData.players) {
-            selectedPlayers = { ...formData.players };
-            positionsPercent = { ...formData.coords };
-        } else {
-            selectedPlayers = {};
-            positionsPercent = {};
-            const layout = formations[currentFormation].layout;
-            for (let pos of formations[currentFormation].positions) {
-                if (!positionsPercent[pos]) positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
-            }
-        }
-        ensureAllPositionsFilled();
-        saveToCloud();
-        rebuildUI();
-    }
-
-    // 切換名單 (工人盃 / 丙組)
+    // 切換名單
     async function switchRoster(rosterType) {
         if (rosterType === currentRoster) return;
-        // 儲存當前狀態
+        // 儲存目前狀態
         if (cloudDataCache) {
-            if (!cloudDataCache.rosters[currentRoster]) cloudDataCache.rosters[currentRoster] = { currentFormation: '442', formations: {} };
-            cloudDataCache.rosters[currentRoster].currentFormation = currentFormation;
-            cloudDataCache.rosters[currentRoster].formations[currentFormation] = { players: selectedPlayers, coords: positionsPercent };
+            if (!cloudDataCache.rosters[currentRoster]) cloudDataCache.rosters[currentRoster] = { currentFormation: currentFormationKey, formations: {} };
+            cloudDataCache.rosters[currentRoster].currentFormation = currentFormationKey;
+            cloudDataCache.rosters[currentRoster].formations[currentFormationKey] = { players: selectedPlayers, coords: positionsPercent };
             await saveToCloud();
         }
         currentRoster = rosterType;
-        activePlayers = (currentRoster === 'workers') ? [...WORKERS_CUP_PLAYERS] : [...CUP_2026_PLAYERS];
-        const rosterData = cloudDataCache?.rosters?.[currentRoster] || { currentFormation: '442', formations: {} };
-        currentFormation = rosterData.currentFormation || '442';
-        formationSelect.value = currentFormation;
-        const formData = rosterData.formations?.[currentFormation];
+        if (currentRoster === 'workers') {
+            currentFormations = sevenFormations;
+            activePlayers = [...WORKERS_CUP_PLAYERS];
+            document.body.classList.remove('roster-reserve');
+            document.body.classList.add('roster-workers');
+            // 陣型選項更新
+            formationSelect.innerHTML = '<option value="321">3-2-1</option><option value="312">3-1-2</option><option value="231">2-3-1</option>';
+        } else {
+            currentFormations = elevenFormations;
+            activePlayers = [...CUP_2026_PLAYERS];
+            document.body.classList.remove('roster-workers');
+            document.body.classList.add('roster-reserve');
+            formationSelect.innerHTML = '<option value="442">4-4-2 (平行)</option><option value="4231">4-2-3-1 (雙防中)</option><option value="451">4-5-1 (穩守)</option>';
+        }
+        // 載入對應數據
+        const rosterData = cloudDataCache?.rosters?.[currentRoster] || { currentFormation: (currentRoster==='workers'?'321':'442'), formations: {} };
+        currentFormationKey = rosterData.currentFormation;
+        if (!currentFormations[currentFormationKey]) currentFormationKey = Object.keys(currentFormations)[0];
+        formationSelect.value = currentFormationKey;
+        const formData = rosterData.formations?.[currentFormationKey];
         if (formData && formData.players) {
             selectedPlayers = { ...formData.players };
             positionsPercent = { ...formData.coords };
         } else {
             selectedPlayers = {};
             positionsPercent = {};
-            const layout = formations[currentFormation].layout;
-            for (let pos of formations[currentFormation].positions) {
+            const layout = currentFormations[currentFormationKey].layout;
+            for (let pos of currentFormations[currentFormationKey].positions) {
                 positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
             }
         }
-        ensureAllPositionsFilled();
+        autoFillPositions();
         // 更新按鈕樣式
         rosterWorkersBtn.classList.toggle('active', currentRoster === 'workers');
         rosterReserveBtn.classList.toggle('active', currentRoster === 'reserve');
         rebuildUI();
         saveToCloud();
+    }
+
+    function updateFormation(val) {
+        if (val === currentFormationKey) return;
+        currentFormationKey = val;
+        const layout = currentFormations[currentFormationKey].layout;
+        // 重置座標為默認
+        for (let pos of currentFormations[currentFormationKey].positions) {
+            if (!positionsPercent[pos]) positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
+        }
+        // 清除舊位置分配，重新自動填充
+        const oldSelected = { ...selectedPlayers };
+        selectedPlayers = {};
+        for (let pos of currentFormations[currentFormationKey].positions) {
+            if (oldSelected[pos]) selectedPlayers[pos] = oldSelected[pos];
+        }
+        autoFillPositions();
+        saveToCloud();
+        rebuildUI();
     }
 
     // 影片管理
@@ -736,7 +746,7 @@
         let sorted = [...videos].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         videoListContainer.innerHTML = sorted.map((v, idx) => {
             let originalIdx = videos.indexOf(v);
-            return `<div class="video-item"><div><b>${escapeHtml(v.title || '影片')}</b><br><span style="font-size:10px;">${escapeHtml(v.url)}</span></div><div class="video-actions"><a href="${escapeHtml(v.url)}" target="_blank">▶播放</a><button class="delete-video" data-idx="${originalIdx}">刪除</button></div></div>`;
+            return `<div class="video-item"><div><b>${escapeHtml(v.title || '影片')}</b><br><span>${escapeHtml(v.url)}</span></div><div class="video-actions"><a href="${escapeHtml(v.url)}" target="_blank">▶播放</a><button class="delete-video" data-idx="${originalIdx}">刪除</button></div></div>`;
         }).join('');
         document.querySelectorAll('.delete-video').forEach(btn => btn.addEventListener('click', async (e) => {
             let idx = parseInt(btn.dataset.idx);
@@ -747,7 +757,6 @@
             }
         }));
     }
-
     async function addVideo() {
         if (!cloudDataCache) return;
         let title = videoTitleInput.value.trim();
@@ -771,43 +780,61 @@
             if (!cloudDataCache.videos) cloudDataCache.videos = [];
             cloudDataCache.videos = cloudDataCache.videos.filter(v => v && v.url);
 
-            // 確保每個名單每個陣型都有基礎結構
-            for (let r of ['workers', 'reserve']) {
-                if (!cloudDataCache.rosters[r]) cloudDataCache.rosters[r] = { currentFormation: '442', formations: {} };
-                for (let f of ['442', '4231', '451']) {
-                    if (!cloudDataCache.rosters[r].formations[f]) cloudDataCache.rosters[r].formations[f] = { players: {}, coords: {} };
-                }
-            }
+            // 決定默認名單
             if (cloudDataCache.currentRoster) currentRoster = cloudDataCache.currentRoster;
-            else currentRoster = 'reserve';
-
-            activePlayers = (currentRoster === 'workers') ? [...WORKERS_CUP_PLAYERS] : [...CUP_2026_PLAYERS];
+            else currentRoster = 'workers';
+            if (currentRoster === 'workers') {
+                currentFormations = sevenFormations;
+                activePlayers = [...WORKERS_CUP_PLAYERS];
+                document.body.classList.add('roster-workers');
+                formationSelect.innerHTML = '<option value="321">3-2-1</option><option value="312">3-1-2</option><option value="231">2-3-1</option>';
+            } else {
+                currentFormations = elevenFormations;
+                activePlayers = [...CUP_2026_PLAYERS];
+                document.body.classList.add('roster-reserve');
+                formationSelect.innerHTML = '<option value="442">4-4-2 (平行)</option><option value="4231">4-2-3-1 (雙防中)</option><option value="451">4-5-1 (穩守)</option>';
+            }
             const rosterData = cloudDataCache.rosters[currentRoster];
-            currentFormation = rosterData.currentFormation || '442';
-            formationSelect.value = currentFormation;
-            const formData = rosterData.formations[currentFormation];
-            selectedPlayers = formData?.players ? { ...formData.players } : {};
-            positionsPercent = formData?.coords ? { ...formData.coords } : {};
-
-            const layout = formations[currentFormation].layout;
-            for (let pos of formations[currentFormation].positions) {
-                if (!positionsPercent[pos] || typeof positionsPercent[pos].percentX !== 'number') {
+            currentFormationKey = rosterData?.currentFormation || (currentRoster==='workers'?'321':'442');
+            if (!currentFormations[currentFormationKey]) currentFormationKey = Object.keys(currentFormations)[0];
+            formationSelect.value = currentFormationKey;
+            const formData = rosterData?.formations?.[currentFormationKey];
+            if (formData && formData.players) {
+                selectedPlayers = { ...formData.players };
+                positionsPercent = { ...formData.coords };
+            } else {
+                selectedPlayers = {};
+                positionsPercent = {};
+                const layout = currentFormations[currentFormationKey].layout;
+                for (let pos of currentFormations[currentFormationKey].positions) {
                     positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
                 }
             }
-            ensureAllPositionsFilled();
+            autoFillPositions();
             renderVideoList(cloudDataCache.videos);
             rebuildUI();
             syncStatusSpan.textContent = '✅ 已同步雲端';
         } catch (err) {
             console.warn('雲端載入失敗，使用本地模式', err);
-            syncStatusSpan.textContent = '⚠️ 離線模式';
-            // 建立空快取
             cloudDataCache = { rosters: { workers: {}, reserve: {} }, videos: [] };
-            activePlayers = (currentRoster === 'workers') ? [...WORKERS_CUP_PLAYERS] : [...CUP_2026_PLAYERS];
-            const layout = formations[currentFormation].layout;
-            for (let pos of formations[currentFormation].positions) positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
-            ensureAllPositionsFilled();
+            if (currentRoster === 'workers') {
+                currentFormations = sevenFormations;
+                activePlayers = [...WORKERS_CUP_PLAYERS];
+                document.body.classList.add('roster-workers');
+                formationSelect.innerHTML = '<option value="321">3-2-1</option><option value="312">3-1-2</option><option value="231">2-3-1</option>';
+                currentFormationKey = '321';
+            } else {
+                currentFormations = elevenFormations;
+                activePlayers = [...CUP_2026_PLAYERS];
+                document.body.classList.add('roster-reserve');
+                formationSelect.innerHTML = '<option value="442">4-4-2</option><option value="4231">4-2-3-1</option><option value="451">4-5-1</option>';
+                currentFormationKey = '442';
+            }
+            formationSelect.value = currentFormationKey;
+            const layout = currentFormations[currentFormationKey].layout;
+            for (let pos of currentFormations[currentFormationKey].positions) positionsPercent[pos] = { percentX: layout[pos].left, percentY: layout[pos].top };
+            selectedPlayers = {};
+            autoFillPositions();
             rebuildUI();
         }
     }
@@ -823,7 +850,7 @@
     }
 
     // 事件綁定
-    formationSelect.onchange = () => { if (formationSelect.value !== currentFormation) updateFormationToCloud(formationSelect.value); };
+    formationSelect.onchange = () => updateFormation(formationSelect.value);
     document.getElementById('btn-auto').addEventListener('click', () => setLayoutMode('auto'));
     document.getElementById('btn-mobile').addEventListener('click', () => setLayoutMode('mobile'));
     document.getElementById('btn-desktop').addEventListener('click', () => setLayoutMode('desktop'));
@@ -833,9 +860,7 @@
 
     window.addEventListener('resize', () => {
         if (resizeTimer) clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            if (pitchContainer) rebuildUI();
-        }, 100);
+        resizeTimer = setTimeout(() => { if (pitchContainer) rebuildUI(); }, 100);
     });
 
     setLayoutMode(localStorage.getItem('layoutMode') || 'auto');
