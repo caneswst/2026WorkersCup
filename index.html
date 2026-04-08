@@ -694,7 +694,7 @@
             activePlayers = [...CUP_2026_PLAYERS];
             document.body.classList.remove('roster-workers');
             document.body.classList.add('roster-reserve');
-            formationSelect.innerHTML = '<option value="442">4-4-2 (平行)</option><option value="4231">4-2-3-1 (雙防中)</option><option value="451">4-5-1 (穩守)</option>';
+            formationSelect.innerHTML = '<option value="442">4-4-2 (平行)</option><option value="4231">4-2-3-1 (雙防中)</option><option value="451">4-5-1 (穩守 丙組第1場4.12陣形)</option>';
         }
         // 載入對應數據
         const rosterData = cloudDataCache?.rosters?.[currentRoster] || { currentFormation: (currentRoster==='workers'?'321':'442'), formations: {} };
