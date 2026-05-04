@@ -25,7 +25,7 @@
         /* 全局預設球員樣式 (工人盃) */
         .player {
             position: absolute;
-            background: #4682b4;  /* 工人盃深藍色 */
+            background: #4682b4;
             border-radius: 50%;
             color: #fff;
             text-align: center;
@@ -281,6 +281,16 @@
             transition: 0.1s;
         }
         .card-btn.danger { background: #ffe0e0; color: #c0392b; }
+        .reset-card-btn {
+            background: #e67e22;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-left: 4px;
+        }
         .suspend-warning {
             background: #f39c12;
             color: #2c2c2c;
@@ -364,7 +374,6 @@
             body:not(.force-desktop):not(.force-mobile) .container { flex-direction: column; }
             body:not(.force-desktop):not(.force-mobile) .player { width: 9vw; height: 9vw; line-height: 9vw; font-size: 3vw; }
         }
-        .player .suspend-icon { font-size: 0.7em; margin-left: 2px; }
         .warning-text { color: #e67e22; font-weight: bold; }
     </style>
 </head>
@@ -400,7 +409,7 @@
         <h2>點選球員圖示查看戰術要求</h2>
         <div id="position-details"></div>
 
-        <!-- 紀律統計面板 -->
+        <!-- 紀律統計面板 (球員名單旁) -->
         <div class="discipline-section">
             <h3>🟨 紀律統計 (黃牌/紅牌) 🟥</h3>
             <div style="font-size:12px; margin-bottom:6px;">⚠️ 黃牌累計3張 或 紅牌1張 → 需停賽1場</div>
@@ -443,7 +452,6 @@
         '451': { positions: ['gk', 'lb', 'lcb', 'rcb', 'rb', 'ldm', 'lcm', 'cm', 'rcm', 'rdm', 'st'], layout: { 'gk': { left: 50, top: 88 }, 'lb': { left: 18, top: 70 }, 'lcb': { left: 38, top: 72 }, 'rcb': { left: 62, top: 72 }, 'rb': { left: 82, top: 70 }, 'ldm': { left: 28, top: 62 }, 'lcm': { left: 43, top: 55 }, 'cm': { left: 50, top: 50 }, 'rcm': { left: 57, top: 55 }, 'rdm': { left: 72, top: 62 }, 'st': { left: 50, top: 25 } }, details: {} }
     };
     const fillElevenDetails = () => {
-        const common = { /* 省略但保留原樣，為保持長度簡潔，沿用默認對象，但確保功能正常 */ };
         for (let form in elevenFormations) for (let pos of elevenFormations[form].positions) elevenFormations[form].details[pos] = { name: pos.toUpperCase(), tactics: '專業戰術', tech: '全能', off: '教練部署', def: '團隊合作', example: '球星' };
     }; fillElevenDetails();
     for(let f in sevenFormations) for(let p of sevenFormations[f].positions) sevenFormations[f].details[p] = { name: p, tactics: '七人場專注', tech: '全面', off: '快速反擊', def: '穩固', example: '球員' };
@@ -496,15 +504,25 @@
         let newYellow = Math.max(0, store[playerName].yellow + deltaYellow);
         let newRed = Math.max(0, store[playerName].red + deltaRed);
         store[playerName] = { yellow: newYellow, red: newRed };
-        // 停賽檢查提示
         const needSuspend = (newYellow >= 3 || newRed >= 1);
         if (needSuspend && (deltaYellow > 0 || deltaRed > 0)) {
             alert(`⚠️ 停賽警告：${playerName} 已累計黃牌${newYellow}張／紅牌${newRed}張，需停賽1場！`);
         }
         saveToCloud().then(() => {
             renderDisciplinePanel();
-            rebuildUI(); // 更新下拉選單及後備顯示停賽提示
+            rebuildUI();
         });
+    }
+    function resetPlayerDiscipline(playerName) {
+        const store = getDisciplineStore();
+        if (store[playerName]) {
+            store[playerName] = { yellow: 0, red: 0 };
+            saveToCloud().then(() => {
+                renderDisciplinePanel();
+                rebuildUI();
+                alert(`${playerName} 的黃紅牌已清零。`);
+            });
+        }
     }
     function resetCurrentRosterDiscipline() {
         const rosterKey = currentRoster;
@@ -539,12 +557,13 @@
                         <button class="card-btn" data-player="${escapeHtml(player)}" data-type="red" data-delta="1">+1</button>
                         <button class="card-btn" data-player="${escapeHtml(player)}" data-type="red" data-delta="-1">-1</button>
                     </div>
+                    <button class="reset-card-btn" data-player="${escapeHtml(player)}">🗑️ 清空</button>
                     ${suspended ? '<span class="suspend-warning">⚠️ 需停賽1場</span>' : ''}
                 </div>
             `;
             disciplinePanelDiv.appendChild(itemDiv);
         }
-        // 綁定按鈕事件
+        // 綁定牌數按鈕
         document.querySelectorAll('.card-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -553,6 +572,14 @@
                 let delta = parseInt(btn.dataset.delta);
                 if (type === 'yellow') updatePlayerCards(player, delta, 0);
                 else if (type === 'red') updatePlayerCards(player, 0, delta);
+            });
+        });
+        // 綁定清空按鈕
+        document.querySelectorAll('.reset-card-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const player = btn.dataset.player;
+                resetPlayerDiscipline(player);
             });
         });
     }
@@ -656,7 +683,7 @@
         renderDisciplinePanel();
     }
 
-    function makeDraggable(el, posKey) { /* 原有拖拽保留 */ 
+    function makeDraggable(el, posKey) {
         let startX, startY, startLeft, startTop, dragging = false, moved = false;
         const container = pitchContainer;
         const onMove = (e) => { if (!dragging) return; e.preventDefault(); let cx = e.clientX ?? (e.touches?.[0]?.clientX ?? 0); let cy = e.clientY ?? (e.touches?.[0]?.clientY ?? 0); let dx = cx - startX, dy = cy - startY; if (!moved && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) moved = true; if (moved) { let nl = startLeft + dx, nt = startTop + dy; let maxX = container.clientWidth - el.clientWidth, maxY = container.clientHeight - el.clientHeight; nl = Math.min(Math.max(0, nl), maxX); nt = Math.min(Math.max(0, nt), maxY); el.style.left = nl + 'px'; el.style.top = nt + 'px'; } };
